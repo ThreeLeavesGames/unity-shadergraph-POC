@@ -1,0 +1,20 @@
+{
+    "name": "DistantLands.Cozy.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:5492a51f516277543a92d676903897bf",
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:d60799ab2a985554ea1a39cd38695018"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

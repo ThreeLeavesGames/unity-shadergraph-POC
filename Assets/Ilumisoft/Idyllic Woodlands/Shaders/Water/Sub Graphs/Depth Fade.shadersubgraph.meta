@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 47bdd9d34ecd2454881fab4e0d45f6a7
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 60072b568d64c40a485e0fc55012dc9f, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 260633
+  packageName: Idyllic Woodlands - Stylized Environment
+  packageVersion: 1.0
+  assetPath: Assets/Ilumisoft/Idyllic Woodlands/Shaders/Water/Sub Graphs/Depth Fade.shadersubgraph
+  uploadId: 616018

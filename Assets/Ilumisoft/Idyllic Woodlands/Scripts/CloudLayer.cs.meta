@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d25d0a067276f194c86ae4a9fb28adc2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 260633
+  packageName: Idyllic Woodlands - Stylized Environment
+  packageVersion: 1.0
+  assetPath: Assets/Ilumisoft/Idyllic Woodlands/Scripts/CloudLayer.cs
+  uploadId: 616018

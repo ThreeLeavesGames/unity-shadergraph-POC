@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 514ca5c9e2fc5a44ea8e0af28ef7044d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 260633
+  packageName: Idyllic Woodlands - Stylized Environment
+  packageVersion: 1.0
+  assetPath: Assets/Ilumisoft/Idyllic Woodlands/Scripts/Skydome.cs
+  uploadId: 616018
