@@ -34,7 +34,7 @@ public class Createbirds : MonoBehaviour
             }
 
             // Create transformation matrix for this instance
-            matrices[i] = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+            matrices[i] = Matrix4x4.TRS(position, Quaternion.Euler(90, 0, 0), Vector3.one);
             positions[i] = position; // Store the initial position
             PickNewTarget(i);         // Pick an initial target for each bird
         }
@@ -54,7 +54,7 @@ public class Createbirds : MonoBehaviour
             // Update matrices based on new positions
             for (int i = 0; i < instanceCount; i++)
             {
-                matrices[i] = Matrix4x4.TRS(positions[i], Quaternion.identity, Vector3.one);
+                matrices[i] = Matrix4x4.TRS(positions[i], Quaternion.Euler(90, 0, 0), Vector3.one);
             }
 
             // Render all instances using GPU instancing
@@ -66,7 +66,7 @@ public class Createbirds : MonoBehaviour
     private void MoveTowardsTarget(int index)
     {
         // Ensure the bird maintains a fixed Y-axis level
-        Vector3 targetPosition = new Vector3(currentTargets[index].x, 0.01f, currentTargets[index].z);
+        Vector3 targetPosition = new Vector3(currentTargets[index].x, currentTargets[index].y, currentTargets[index].z);
         positions[index] = Vector3.MoveTowards(positions[index], targetPosition, speed * Time.deltaTime);
 
         // Check if the bird reached the target position
