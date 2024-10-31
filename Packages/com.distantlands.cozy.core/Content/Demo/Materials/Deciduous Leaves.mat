@@ -85,7 +85,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaClip: 0
+    - _AlphaClip: 1
     - _AlphaCutoff: 0.5
     - _AlphaVariation: 0.4
     - _BumpScale: 1
@@ -129,7 +129,7 @@ Material:
     - _BottomColor: {r: 1, g: 1, b: 1, a: 0}
     - _Color: {r: 0.28970483, g: 0.8000001, b: 0.23995335, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FilterColor: {r: 1, g: 0.55888855, b: 0, a: 1}
+    - _FilterColor: {r: 0.22390006, g: 0.6698113, b: 0.08530616, a: 1}
     - _SnowColor1: {r: 1, g: 1, b: 1, a: 0}
     - _TopColor: {r: 0.7650035, g: 0.7046963, b: 0.25098294, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 1, a: 0}
