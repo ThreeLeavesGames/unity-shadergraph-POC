@@ -20,33 +20,40 @@ public class FishMovementBoundryPoints : MonoBehaviour
     private float directionTimer;
     private Vector3 centerPoint;
     private float boundaryRadius;
+    private bool isMoving = false;
 
     void Start()
     {
-        // Initialize boundary points
+        InitializeBoundary();
+        SetInitialPosition();
+        isMoving = true;
+    }
+
+    void InitializeBoundary()
+    {
+        boundaryPoints.Clear();
         for (int i = 0; i < boundaryPointsGameObjects.Count; i++)
         {
             boundaryPoints.Add(boundaryPointsGameObjects[i].transform.position);
         }
-        
         CalculatePondMetrics();
-        
-        // Set initial position if not already in pond
-        if (!IsPointInPond(transform.position))
-        {
-            transform.position = centerPoint;
-        }
-        
+    }
+
+    void SetInitialPosition()
+    {
+        transform.position = centerPoint;
         SetNewRandomTarget();
     }
 
-    void CalculatePondMetrics()
+    void Update()
     {
-        centerPoint = boundaryPoints.Aggregate(Vector3.zero, (sum, point) => sum + point) / boundaryPoints.Count;
-        boundaryRadius = boundaryPoints.Max(point => Vector3.Distance(centerPoint, point));
+        if (!isMoving) return;
+
+        UpdateTimer();
+        UpdateMovement();
     }
 
-    void Update()
+    void UpdateTimer()
     {
         directionTimer -= Time.deltaTime;
         if (directionTimer <= 0)
@@ -54,107 +61,147 @@ public class FishMovementBoundryPoints : MonoBehaviour
             SetNewRandomTarget();
             directionTimer = Random.Range(directionChangeInterval * 0.5f, directionChangeInterval * 1.5f);
         }
+    }
 
-        // Calculate desired direction
-        Vector3 moveDirection = (targetPoint - transform.position).normalized;
-        Vector3 avoidanceForce = CalculateBoundaryAvoidance();
-        Vector3 finalDirection = (moveDirection + avoidanceForce * boundaryAvoidanceStrength).normalized;
+    void UpdateMovement()
+    {
+        Vector3 currentPosition = transform.position;
+        Vector3 moveDirection = (targetPoint - currentPosition).normalized;
+        
+        // Calculate next position
+        Vector3 nextPosition = currentPosition + moveDirection * swimSpeed * Time.deltaTime;
+        nextPosition.y = currentPosition.y;
 
-        // Only rotate and move if we have a valid direction
-        if (finalDirection != Vector3.zero)
+        // Check if next position is inside using winding number
+        if (IsPointInPolygon(nextPosition))
         {
-            // Keep Y position constant
-            float currentY = transform.position.y;
-            
-            // Update position
-            Vector3 newPosition = transform.position + finalDirection * swimSpeed * Time.deltaTime;
-            newPosition.y = currentY;
-            
-            // Check if new position is valid
-            if (IsPointInPond(newPosition))
-            {
-                transform.position = newPosition;
-            }
-            else
-            {
-                // If invalid, move towards center instead
-                Vector3 toCenterDirection = (centerPoint - transform.position).normalized;
-                transform.position += toCenterDirection * swimSpeed * Time.deltaTime;
-            }
+            transform.position = nextPosition;
+        }
+        else
+        {
+            // If outside, steer back towards center
+            Vector3 toCenter = (centerPoint - currentPosition).normalized;
+            transform.position += toCenter * swimSpeed * Time.deltaTime;
+            SetNewRandomTarget(); // Get new target when hitting boundary
+        }
 
-            // Update rotation
-            Quaternion targetRotation = Quaternion.LookRotation(finalDirection);
+        // Update rotation
+        if (moveDirection != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
         }
     }
 
-    Vector3 CalculateBoundaryAvoidance()
+    bool IsPointInPolygon(Vector3 point)
     {
-        Vector3 avoidanceForce = Vector3.zero;
-        Vector3 nextPosition = transform.position + transform.forward * boundaryPadding;
+        int windingNumber = 0;
         
-        if (!IsPointInPond(nextPosition))
-        {
-            avoidanceForce = (centerPoint - transform.position).normalized;
-            // Add some random variation to avoid getting stuck
-            avoidanceForce += Random.insideUnitSphere * 0.3f;
-        }
-        
-        return avoidanceForce.normalized;
-    }
-
-    bool IsPointInPond(Vector3 point)
-    {
-        int intersections = 0;
         for (int i = 0; i < boundaryPoints.Count; i++)
         {
-            Vector3 vert1 = boundaryPoints[i];
-            Vector3 vert2 = boundaryPoints[(i + 1) % boundaryPoints.Count];
-            
-            if (IsIntersecting(point, point + Vector3.right * 1000f, vert1, vert2))
+            Vector3 current = boundaryPoints[i];
+            Vector3 next = boundaryPoints[(i + 1) % boundaryPoints.Count];
+
+            // Convert to 2D by ignoring Y (assuming boundary is on XZ plane)
+            Vector2 p = new Vector2(point.x, point.z);
+            Vector2 v1 = new Vector2(current.x, current.z);
+            Vector2 v2 = new Vector2(next.x, next.z);
+
+            windingNumber += CalculateWindingSegment(p, v1, v2);
+        }
+
+        return windingNumber != 0;
+    }
+
+    int CalculateWindingSegment(Vector2 point, Vector2 vertex1, Vector2 vertex2)
+    {
+        if (vertex1.y <= point.y)
+        {
+            if (vertex2.y > point.y)
             {
-                intersections++;
+                if (IsLeft(vertex1, vertex2, point) > 0)
+                {
+                    return 1;
+                }
             }
         }
-        
-        return intersections % 2 == 1;
+        else
+        {
+            if (vertex2.y <= point.y)
+            {
+                if (IsLeft(vertex1, vertex2, point) < 0)
+                {
+                    return -1;
+                }
+            }
+        }
+        return 0;
+    }
+
+    float IsLeft(Vector2 vertex1, Vector2 vertex2, Vector2 point)
+    {
+        return ((vertex2.x - vertex1.x) * (point.y - vertex1.y) - 
+                (point.x - vertex1.x) * (vertex2.y - vertex1.y));
     }
 
     void SetNewRandomTarget()
     {
-        for (int i = 0; i < 10; i++) // Try up to 10 times to find valid point
+        for (int attempts = 0; attempts < 10; attempts++)
         {
-            Vector3 randomDirection = Random.insideUnitSphere;
-            randomDirection.y = 0; // Keep movement in XZ plane
-            randomDirection.Normalize();
-            
-            Vector3 potentialTarget = transform.position + randomDirection * Random.Range(wanderRadius * 0.2f, wanderRadius);
-            potentialTarget.y = transform.position.y; // Maintain Y position
-            
-            if (IsPointInPond(potentialTarget))
+            float randomAngle = Random.Range(0f, 360f);
+            float randomDistance = Random.Range(wanderRadius * 0.3f, wanderRadius);
+            Vector3 randomDirection = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
+            Vector3 newTarget = centerPoint + randomDirection * randomDistance;
+            newTarget.y = transform.position.y;
+
+            // Only set target if it's inside the polygon
+            if (IsPointInPolygon(newTarget))
             {
-                targetPoint = potentialTarget;
+                targetPoint = newTarget;
                 return;
             }
         }
-        
-        // If no valid point found, move towards center
-        targetPoint = Vector3.Lerp(transform.position, centerPoint, 0.5f);
+
+        // Fallback to center if no valid point found
+        targetPoint = centerPoint;
     }
 
-    private bool IsIntersecting(Vector3 point1, Vector3 point2, Vector3 point3, Vector3 point4)
+    void CalculatePondMetrics()
     {
-        // Line segment intersection check (keeping y constant)
-        float denominator = (point2.x - point1.x) * (point4.z - point3.z) - 
-                          (point2.z - point1.z) * (point4.x - point3.x);
-        
-        if (denominator == 0) return false;
-        
-        float ua = ((point4.x - point3.x) * (point1.z - point3.z) - 
-                   (point4.z - point3.z) * (point1.x - point3.x)) / denominator;
-        float ub = ((point2.x - point1.x) * (point1.z - point3.z) - 
-                   (point2.z - point1.z) * (point1.x - point3.x)) / denominator;
-        
-        return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+        if (boundaryPoints.Count == 0)
+        {
+            Debug.LogError("No boundary points found!");
+            return;
+        }
+
+        centerPoint = boundaryPoints.Aggregate(Vector3.zero, (sum, point) => sum + point) / boundaryPoints.Count;
+        boundaryRadius = boundaryPoints.Max(point => Vector3.Distance(centerPoint, point));
+    }
+
+    void OnDrawGizmos()
+    {
+        if (boundaryPoints == null || boundaryPoints.Count == 0) return;
+
+        // Draw boundary
+        Gizmos.color = Color.blue;
+        for (int i = 0; i < boundaryPoints.Count; i++)
+        {
+            Gizmos.DrawSphere(boundaryPoints[i], 0.5f);
+            Gizmos.DrawLine(boundaryPoints[i], 
+                boundaryPoints[(i + 1) % boundaryPoints.Count]);
+        }
+
+        if (Application.isPlaying)
+        {
+            // Draw target and debug info
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(targetPoint, 0.5f);
+            
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position, targetPoint);
+            
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(centerPoint, 1f);
+        }
     }
 }
