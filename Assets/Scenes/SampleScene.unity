@@ -709,6 +709,7 @@ GameObject:
   - component: {fileID: 208891383}
   - component: {fileID: 208891384}
   - component: {fileID: 208891385}
+  - component: {fileID: 208891386}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -1059,7 +1060,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 208891376}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c790f1c77488354caffb5ca727823a5, type: 3}
   m_Name: 
@@ -1106,6 +1107,32 @@ MonoBehaviour:
   numberOfPoints: 100
   moveSpeed: 8
   directionChangeTime: 2
+--- !u!114 &208891386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 208891376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1528362dbb298541b5a83a5b94cf990, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  preyPrefab: {fileID: 2957391967433091747, guid: be9a87164bb6db5458f2e83c25eb484b, type: 3}
+  predatorPrefab: {fileID: 7717580253997435371, guid: e6090753eaafc8f478f7fdbbfe6d40d9, type: 3}
+  preyCount: 1000
+  predatorCount: 300
+  spawnRadius: 298.4
+  preySpeed: 5
+  preyPerceptionRadius: 2.5
+  preyCohesionWeight: 1
+  preySeparationWeight: 1.5
+  preyAlignmentWeight: 1
+  preyAvoidPredatorWeight: 2
+  predatorSpeed: 7
+  predatorPerceptionRadius: 5
+  predatorChaseWeight: 2
 --- !u!1 &227336711
 GameObject:
   m_ObjectHideFlags: 0
@@ -1523,7 +1550,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -122.3, y: 81.19, z: -12}
+  m_LocalPosition: {x: 1, y: 81, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
