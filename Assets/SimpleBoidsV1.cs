@@ -76,7 +76,7 @@ public class SimpleBoidsV1 : MonoBehaviour
             }
             attempts++;
         }
-        
+        Debug.Log(found+ "   found");
         return found ? position : centerPoint;
     }
 
@@ -182,6 +182,16 @@ public class SimpleBoidsV1 : MonoBehaviour
             Gizmos.DrawLine(boundaryPoints[i], 
                 boundaryPoints[(i + 1) % boundaryPoints.Count]);
         }
+
+            float minX = boundaryPoints.Min(p => p.x);
+            float maxX = boundaryPoints.Max(p => p.x);
+            float minZ = boundaryPoints.Min(p => p.z);
+            float maxZ = boundaryPoints.Max(p => p.z);
+
+            Gizmos.DrawLine(new Vector3(minX,0,minZ),new Vector3(maxX,0,maxZ));
+            Gizmos.DrawLine(new Vector3(minX,0,maxZ),new Vector3(maxX,0,minZ));
+        Gizmos.DrawCube(GetRandomPositionInBounds(),new Vector3(1,1,1));
+            
 
         // Draw targets in play mode
         if (Application.isPlaying && targetPositions != null)
