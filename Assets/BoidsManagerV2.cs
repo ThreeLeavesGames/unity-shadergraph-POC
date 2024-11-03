@@ -32,18 +32,20 @@ public class BoidsManagerV2 : MonoBehaviour
     public float boundaryTurnForce = 0.5f;   // Force applied to turn away from boundary
 
 
-    private NativeArray<float3> preyPositions;
-    private NativeArray<float3> preyVelocities;
-    private NativeArray<float3> predatorPositions;
-    private NativeArray<float3> predatorVelocities;
-    private Transform[] preyTransforms;
-    private Transform[] predatorTransforms;
 
-    // Arrays to store updated positions and velocities
-    private NativeArray<float3> newPreyPositions;
-    private NativeArray<float3> newPreyVelocities;
-    private NativeArray<float3> newPredatorPositions;
-    private NativeArray<float3> newPredatorVelocities;
+    // Native arrays for current frame data (persistent memory)
+    private NativeArray<float3> preyPositions;      // Current prey positions
+    private NativeArray<float3> preyVelocities;     // Current prey velocities
+    private NativeArray<float3> predatorPositions;   // Current predator positions
+    private NativeArray<float3> predatorVelocities;  // Current predator velocities
+    private Transform[] preyTransforms;             // References to prey GameObjects
+    private Transform[] predatorTransforms;         // References to predator GameObjects
+
+    // Double-buffered arrays for next frame data (prevents race conditions)
+    private NativeArray<float3> newPreyPositions;     // Next frame prey positions
+    private NativeArray<float3> newPreyVelocities;    // Next frame prey velocities
+    private NativeArray<float3> newPredatorPositions;  // Next frame predator positions
+    private NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
 
     void Start()
     {
@@ -53,49 +55,68 @@ public class BoidsManagerV2 : MonoBehaviour
 
     void InitializeArrays()
     {
-        // Initialize main arrays
+        // Initialize main arrays with persistent allocator for long-term storage
         preyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
         preyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
         predatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
         predatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
 
-        // Initialize temporary arrays for updates
+        // Initialize temporary arrays for double buffering
         newPreyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
         newPreyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
         newPredatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
         newPredatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
 
+        // Initialize transform arrays for GameObject references
         preyTransforms = new Transform[preyCount];
         predatorTransforms = new Transform[predatorCount];
     }
 
+    /// <summary>
+    /// Spawns initial boids in the scene and initializes their positions/velocities
+    /// </summary>
     void SpawnBoids()
     {
         for (int i = 0; i < preyCount; i++)
         {
-            Vector3 randomPos = UnityEngine.Random.insideUnitSphere * spawnRadius;
+            // Use Random.insideUnitCircle for X-Z plane spawn
+            Vector2 randomCircle = UnityEngine.Random.insideUnitCircle * spawnRadius;
+            Vector3 randomPos = new Vector3(randomCircle.x, 0, randomCircle.y); // Y is always 0
+            
+            // Instantiate prey and store transform
             GameObject prey = Instantiate(preyPrefab, randomPos, UnityEngine.Random.rotation);
             preyTransforms[i] = prey.transform;
             preyPositions[i] = randomPos;
-            preyVelocities[i] = UnityEngine.Random.insideUnitSphere.normalized * preySpeed;
+        
+            // Create random direction in X-Z plane
+            Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
+            preyVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * preySpeed;
         }
 
         for (int i = 0; i < predatorCount; i++)
         {
-            Vector3 randomPos = UnityEngine.Random.insideUnitSphere * spawnRadius;
+            // Use Random.insideUnitCircle for X-Z plane spawn
+            Vector2 randomCircle = UnityEngine.Random.insideUnitCircle * spawnRadius;
+            Vector3 randomPos = new Vector3(randomCircle.x, 0, randomCircle.y); // Y is always 0
             GameObject predator = Instantiate(predatorPrefab, randomPos, UnityEngine.Random.rotation);
             predatorTransforms[i] = predator.transform;
             predatorPositions[i] = randomPos;
-            predatorVelocities[i] = UnityEngine.Random.insideUnitSphere.normalized * predatorSpeed;
+        
+            // Create random direction in X-Z plane
+            Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
+            predatorVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * predatorSpeed;
         }
 
-        // Copy initial values to new arrays
+        // Initialize double buffer arrays with starting values
         preyPositions.CopyTo(newPreyPositions);
         preyVelocities.CopyTo(newPreyVelocities);
         predatorPositions.CopyTo(newPredatorPositions);
         predatorVelocities.CopyTo(newPredatorVelocities);
     }
 
+    /// <summary>
+    /// Updates boid positions and rotations each frame
+    /// </summary>
     void Update()
     {
         UpdateBoidsPositions();
@@ -148,10 +169,13 @@ public class BoidsManagerV2 : MonoBehaviour
         // Wait for all jobs to complete
         predatorHandle.Complete();
 
-        // Swap the arrays
+        // Update arrays for next frame
         SwapArrays();
     }
 
+    /// <summary>
+    /// Swaps double buffered arrays to prepare for next frame
+    /// </summary>
     void SwapArrays()
     {
         // Copy new positions and velocities to current arrays
@@ -161,6 +185,9 @@ public class BoidsManagerV2 : MonoBehaviour
         newPredatorVelocities.CopyTo(predatorVelocities);
     }
 
+    /// <summary>
+    /// Updates GameObject transforms with calculated positions
+    /// </summary>
     void UpdateTransforms()
     {
         for (int i = 0; i < preyCount; i++)
@@ -198,110 +225,135 @@ public class BoidsManagerV2 : MonoBehaviour
 [BurstCompile]
 public struct PreyUpdateJob : IJobParallelFor
 {
-    public float deltaTime;
-    [ReadOnly] public NativeArray<float3> currentPositions;
-    [ReadOnly] public NativeArray<float3> currentVelocities;
-    [WriteOnly] public NativeArray<float3> newPositions;
-    [WriteOnly] public NativeArray<float3> newVelocities;
-    [ReadOnly] public NativeArray<float3> predatorPositions;
-    public float boundarySize;        // Size of the hard boundary
-    public float softBoundaryOffset;  // Distance from boundary to start turning
-    public float boundaryTurnForce;   // Strength of the turn force
+    // Time and position/velocity data
+    public float deltaTime;                                    // Time since last frame
+    [ReadOnly] public NativeArray<float3> currentPositions;    // Current prey positions
+    [ReadOnly] public NativeArray<float3> currentVelocities;   // Current prey velocities
+    [WriteOnly] public NativeArray<float3> newPositions;       // Output positions for next frame
+    [WriteOnly] public NativeArray<float3> newVelocities;      // Output velocities for next frame
+    [ReadOnly] public NativeArray<float3> predatorPositions;   // Current predator positions
+    // Boundary parameters
+    public float boundarySize;        // Size of the simulation space
+    public float softBoundaryOffset;  // Distance from edge where turning starts
+    public float boundaryTurnForce;   // Strength of boundary avoidance
     
-    public float speed;
-    public float perceptionRadius;
-    public float cohesionWeight;
-    public float separationWeight;
-    public float alignmentWeight;
-    public float avoidPredatorWeight;
+    // Boid behavior parameters
+    public float speed;              // Base movement speed
+    public float perceptionRadius;   // Radius within which boids can sense others
+    public float cohesionWeight;     // Strength of flock centering
+    public float separationWeight;   // Strength of collision avoidance
+    public float alignmentWeight;    // Strength of velocity matching
+    public float avoidPredatorWeight;// Strength of predator avoidance
+
+    /// <summary>
+    /// Updates a single prey boid's position and velocity
+    /// </summary>
 
     public void Execute(int index)
     {
+        // Get current boid state
         float3 position = currentPositions[index];
         float3 velocity = currentVelocities[index];
 
-        float3 cohesion = float3.zero;
-        float3 separation = float3.zero;
-        float3 alignment = float3.zero;
-        float3 avoidPredator = float3.zero;
+        // Initialize flocking forces
+        float3 cohesion = float3.zero;    // Force toward center of flock
+        float3 separation = float3.zero;   // Force away from nearby boids
+        float3 alignment = float3.zero;    // Force to match flock velocity
+        float3 avoidPredator = float3.zero;// Force away from predators
+        int neighborCount = 0;             // Number of nearby boids
 
-        int neighborCount = 0;
-
-        // Calculate flocking behaviors
+        // Calculate flocking behaviors by checking all other prey
         for (int i = 0; i < currentPositions.Length; i++)
         {
-            if (i == index) continue;
+            if (i == index) continue; // Skip self
 
+            // Calculate distance to neighbor
             float3 offset = currentPositions[i] - position;
             float sqrDst = math.lengthsq(offset);
 
+            // If neighbor is within perception radius
             if (sqrDst < perceptionRadius * perceptionRadius)
             {
-                cohesion += currentPositions[i];
-                separation += -offset / math.sqrt(sqrDst);
-                alignment += currentVelocities[i];
+                cohesion += currentPositions[i];          // Add position for averaging
+                separation += -offset / math.sqrt(sqrDst); // Stronger separation when closer 
+                alignment += currentVelocities[i];         // Add velocity for averaging
                 neighborCount++;
             }
         }
 
-        // Apply flocking rules
+        // Apply flocking rules if we have neighbors
         if (neighborCount > 0)
         {
+            // Calculate center of mass and move toward it
             cohesion = (cohesion / neighborCount - position) * cohesionWeight;
+            // Apply separation force to avoid collisions
             separation = separation * separationWeight;
+            // Match velocity with neighbors
             alignment = (alignment / neighborCount) * alignmentWeight;
-        }
+        }   
 
-        // Avoid predators
+        // Calculate predator avoidance
         for (int i = 0; i < predatorPositions.Length; i++)
         {
             float3 offset = position - predatorPositions[i];
             float sqrDst = math.lengthsq(offset);
             
+            // Stronger avoidance when predator is closer, within extended radius
             if (sqrDst < perceptionRadius * perceptionRadius * 4)
             {
                 avoidPredator += math.normalize(offset) * (avoidPredatorWeight / math.sqrt(sqrDst));
             }
         }
 
-        // Update velocity and position
+        // Constrain to XZ plane
+        velocity.y = 0;
+        position.y = 0;
+
+        // Combine all forces to update velocity
         velocity += cohesion + separation + alignment + avoidPredator;
 
+        // Calculate boundary avoidance
         float softBound = boundarySize - softBoundaryOffset;
         float3 boundaryForce = GetBoundaryForce(position, softBound);
     
-        // Only apply boundary force if we're actually near a boundary
+        // Apply boundary force if near edges
         if (math.lengthsq(boundaryForce) > 0)
         {
             velocity += boundaryForce * boundaryTurnForce;
         }
 
+        // Maintain XZ plane constraint
+        velocity.y = 0;
         velocity = math.normalize(velocity) * speed;
         position += velocity * deltaTime;
 
-        // Clamp position to boundaries
-       // float hardBound = 20f;
+        // Enforce boundaries and ground plane
         position = math.clamp(position, new float3(-boundarySize), new float3(boundarySize));
-
+        position.y = 0;
+        
+        // Store results
         newPositions[index] = position;
         newVelocities[index] = velocity;
     }
-
+    /// <summary>
+    /// Calculates force to avoid boundaries
+    /// </summary>
     private float3 GetBoundaryForce(float3 position, float bound)
     {
         float3 force = float3.zero;
-        float margin = bound * 0.1f; // Only start applying force when within 10% of the boundary
+        float margin = bound * 0.1f; // 10% of boundary size as margin
 
-        // Only apply force when close to boundaries
+        // Calculate X axis boundary force
         if (math.abs(position.x) > bound - margin)
             force.x = -math.sign(position.x) * (math.abs(position.x) - (bound - margin)) / margin;
     
-        if (math.abs(position.y) > bound - margin)
-            force.y = -math.sign(position.y) * (math.abs(position.y) - (bound - margin)) / margin;
-    
+        // Calculate Z axis boundary force
         if (math.abs(position.z) > bound - margin)
             force.z = -math.sign(position.z) * (math.abs(position.z) - (bound - margin)) / margin;
 
+        // No vertical force
+        force.y = 0;
+    
         return force;
     }
 }
@@ -309,29 +361,37 @@ public struct PreyUpdateJob : IJobParallelFor
 [BurstCompile]
 public struct PredatorUpdateJob : IJobParallelFor
 {
-    public float deltaTime;
-    [ReadOnly] public NativeArray<float3> currentPositions;
-    [ReadOnly] public NativeArray<float3> currentVelocities;
-    [WriteOnly] public NativeArray<float3> newPositions;
-    [WriteOnly] public NativeArray<float3> newVelocities;
-    [ReadOnly] public NativeArray<float3> preyPositions;
+    // Time and position/velocity data
+    public float deltaTime;                                    // Time since last frame
+    [ReadOnly] public NativeArray<float3> currentPositions;    // Current predator positions
+    [ReadOnly] public NativeArray<float3> currentVelocities;   // Current predator velocities
+    [WriteOnly] public NativeArray<float3> newPositions;       // Output positions for next frame
+    [WriteOnly] public NativeArray<float3> newVelocities;      // Output velocities for next frame
+    [ReadOnly] public NativeArray<float3> preyPositions;       // Current prey positions
     
-    public float boundarySize;        // Size of the hard boundary
-    public float softBoundaryOffset;  // Distance from boundary to start turning
-    public float boundaryTurnForce;   // Strength of the turn force
+    // Boundary parameters
+    public float boundarySize;        // Size of simulation space
+    public float softBoundaryOffset;  // Distance from edge where turning starts
+    public float boundaryTurnForce;   // Strength of boundary avoidance
     
-    public float speed;
-    public float perceptionRadius;
-    public float chaseWeight;
+    // Predator behavior parameters
+    public float speed;              // Base movement speed
+    public float perceptionRadius;   // How far predator can see prey
+    public float chaseWeight;        // Strength of chase behavior
 
+    /// <summary>
+    /// Updates a single predator's position and velocity
+    /// </summary>
     public void Execute(int index)
     {
+        // Get current predator state
         float3 position = currentPositions[index];
         float3 velocity = currentVelocities[index];
         float3 preyDirection = float3.zero;
         float closestPreyDistance = float.MaxValue;
+        
 
-        // Find closest prey
+        // Find closest prey within perception radius
         for (int i = 0; i < preyPositions.Length; i++)
         {
             float3 offset = preyPositions[i] - position;
@@ -343,19 +403,18 @@ public struct PredatorUpdateJob : IJobParallelFor
                 preyDirection = math.normalize(offset);
             }
         }
+        
+        // Keep y component at 0
+        velocity.y = 0;
+        position.y = 0;
 
-        // Chase prey if found
+        // Chase nearest prey if one was found
         if (closestPreyDistance < float.MaxValue)
         {
             velocity = math.lerp(velocity, preyDirection * speed, chaseWeight * deltaTime);
         }
-
-        // Add boundary avoidance force
-        // float bound = 19f;
-        // float turnForce = 0.5f;
-        // velocity += GetBoundaryForce(position, bound) * turnForce;
         
-        // Add boundary avoidance with configurable parameters
+        // Calculate and apply boundary avoidance
         float softBound = boundarySize - softBoundaryOffset;
         float3 boundaryForce = GetBoundaryForce(position, softBound);
     
@@ -365,12 +424,13 @@ public struct PredatorUpdateJob : IJobParallelFor
             velocity += boundaryForce * boundaryTurnForce;
         }
 
-        // Update position
+        // Ensure velocity stays in X-Z plane
+        velocity.y = 0;
         velocity = math.normalize(velocity) * speed;
         position += velocity * deltaTime;
+        position.y = 0;
 
         // Clamp position to boundaries
-       // float hardBound = 20f;
         position = math.clamp(position, new float3(-boundarySize), new float3(boundarySize));
 
         newPositions[index] = position;
@@ -380,18 +440,18 @@ public struct PredatorUpdateJob : IJobParallelFor
     private float3 GetBoundaryForce(float3 position, float bound)
     {
         float3 force = float3.zero;
-        float margin = bound * 0.1f; // Only start applying force when within 10% of the boundary
+        float margin = bound * 0.1f;
 
-        // Only apply force when close to boundaries
+        // Only check X and Z boundaries
         if (math.abs(position.x) > bound - margin)
             force.x = -math.sign(position.x) * (math.abs(position.x) - (bound - margin)) / margin;
-        
-        if (math.abs(position.y) > bound - margin)
-            force.y = -math.sign(position.y) * (math.abs(position.y) - (bound - margin)) / margin;
-        
+    
         if (math.abs(position.z) > bound - margin)
             force.z = -math.sign(position.z) * (math.abs(position.z) - (bound - margin)) / margin;
 
+        // Keep Y force at 0
+        force.y = 0;
+    
         return force;
     }
 }
