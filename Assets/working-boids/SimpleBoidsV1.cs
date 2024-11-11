@@ -28,13 +28,13 @@ public class SimpleBoidsV1 : MonoBehaviour
 
     void InitializeBoundary()
     {
-        // boundaryPoints.Clear();
-        // foreach (var point in boundaryPointsGameObjects)
-        // {
-        //     Vector3 position = point.transform.position;
-        //     position.y = 0f;
-        //     boundaryPoints.Add(position);
-        // }
+        boundaryPoints.Clear();
+        foreach (var point in boundaryPointsGameObjects)
+        {
+            Vector3 position = point.transform.position;
+            position.y = 0f;
+            boundaryPoints.Add(position);
+        }
         centerPoint = boundaryPoints.Aggregate(Vector3.zero, (sum, pos) => sum + pos) / boundaryPoints.Count;
         centerPoint.y = 0f;
     }

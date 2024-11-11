@@ -25,7 +25,7 @@ Shader "Custom/GraphicsAPIInstancing"
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
+                uint instanceID : SV_InstanceID;  // Added explicit instance ID semantic
             };
 
             struct Varyings
