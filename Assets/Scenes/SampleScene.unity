@@ -797,47 +797,41 @@ MonoBehaviour:
   birdMesh: {fileID: -3781860745874542921, guid: 23d7119e980e75a40af3feab9bd4135c, type: 3}
   birdMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
   targetPositions:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 64134764}
+  - {fileID: 2091961587}
+  - {fileID: 1354035862}
+  - {fileID: 238579640}
+  - {fileID: 559667397}
+  - {fileID: 1972057195}
+  - {fileID: 1138996787}
+  - {fileID: 552728485}
+  - {fileID: 1811410549}
+  - {fileID: 1493025908}
+  - {fileID: 1196721336}
+  - {fileID: 1489138155}
+  - {fileID: 1593682058}
+  - {fileID: 1011117636}
+  - {fileID: 1068767168}
+  - {fileID: 272210202}
+  - {fileID: 1403251916}
+  - {fileID: 1264904244}
+  - {fileID: 1742567135}
+  - {fileID: 158238302}
+  - {fileID: 484948531}
+  - {fileID: 1719587332}
+  - {fileID: 420639193}
+  - {fileID: 1651977769}
+  - {fileID: 1873509432}
+  - {fileID: 1593022325}
+  - {fileID: 1857203834}
+  - {fileID: 1598428983}
+  - {fileID: 951560436}
+  - {fileID: 769993993}
+  - {fileID: 1526044511}
+  - {fileID: 1517083289}
+  - {fileID: 333602647}
+  - {fileID: 1099433862}
+  - {fileID: 1547784790}
   speed: 2
 --- !u!114 &208891382
 MonoBehaviour:
@@ -854,47 +848,41 @@ MonoBehaviour:
   birdMesh: {fileID: -3781860745874542921, guid: 23d7119e980e75a40af3feab9bd4135c, type: 3}
   birdMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
   targetPositions:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 64134764}
+  - {fileID: 2091961587}
+  - {fileID: 1354035862}
+  - {fileID: 238579640}
+  - {fileID: 559667397}
+  - {fileID: 1972057195}
+  - {fileID: 1138996787}
+  - {fileID: 552728485}
+  - {fileID: 1811410549}
+  - {fileID: 1493025908}
+  - {fileID: 1196721336}
+  - {fileID: 1489138155}
+  - {fileID: 1593682058}
+  - {fileID: 1011117636}
+  - {fileID: 1068767168}
+  - {fileID: 272210202}
+  - {fileID: 1403251916}
+  - {fileID: 1264904244}
+  - {fileID: 1742567135}
+  - {fileID: 158238302}
+  - {fileID: 484948531}
+  - {fileID: 1719587332}
+  - {fileID: 420639193}
+  - {fileID: 1651977769}
+  - {fileID: 1873509432}
+  - {fileID: 1593022325}
+  - {fileID: 1857203834}
+  - {fileID: 1598428983}
+  - {fileID: 951560436}
+  - {fileID: 769993993}
+  - {fileID: 1526044511}
+  - {fileID: 1517083289}
+  - {fileID: 333602647}
+  - {fileID: 1099433862}
+  - {fileID: 1547784790}
   speed: 2
 --- !u!114 &208891383
 MonoBehaviour:
@@ -962,16 +950,18 @@ MonoBehaviour:
   - {fileID: 1593682054}
   - {fileID: 1011117632}
   - {fileID: 1068767164}
-  - {fileID: 272210201}
+  - {fileID: 1403251912}
   - {fileID: 1264904243}
-  - {fileID: 158238301}
-  - {fileID: 1719587331}
-  - {fileID: 1651977768}
-  - {fileID: 1593022324}
-  - {fileID: 1598428982}
+  - {fileID: 1742567131}
+  - {fileID: 484948527}
+  - {fileID: 420639189}
+  - {fileID: 1873509428}
+  - {fileID: 1857203830}
+  - {fileID: 951560432}
   - {fileID: 769993992}
-  - {fileID: 1517083288}
-  - {fileID: 1099433861}
+  - {fileID: 1526044507}
+  - {fileID: 333602643}
+  - {fileID: 1547784786}
   boundaryPoints: []
   pointPrefab: {fileID: 7717580253997435371, guid: e6090753eaafc8f478f7fdbbfe6d40d9, type: 3}
   numberOfPoints: 100
@@ -1013,7 +1003,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 208891376}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ffe9cb67663d6074a92b09e2ac22fb59, type: 3}
   m_Name: 
@@ -1135,7 +1125,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 208891376}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c402abe4994b4735af4619582a56c69a, type: 3}
   m_Name: 

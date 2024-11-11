@@ -51,7 +51,7 @@ public class GraphicsAPIInstancing : MonoBehaviour
         for (int i = 0; i < TOTAL_INSTANCES; i++)
         {
             float t = i / (float)TOTAL_INSTANCES;
-            instanceData[i].color = Color.HSVToRGB(t, 1, 1);
+            instanceData[i].color = Color.HSVToRGB(t*0.5f, 1, 1);
         }
         
         propertyBuffer.SetData(instanceData);
