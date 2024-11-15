@@ -11,7 +11,7 @@ using Unity.Burst;
 // }
 
 
-public class BoidsManagerV4 : MonoBehaviour
+public class BoidsManagerV6 : MonoBehaviour
 {
     [Header("Polygon Boundary")]
     public Vector3[] polygonPoints;   // Set this in inspector or via code
@@ -187,7 +187,7 @@ public class BoidsManagerV4 : MonoBehaviour
     void UpdateBoidsPositions()
     {
         // Create prey update job
-        PreyUpdateJobV4 preyJob = new PreyUpdateJobV4
+        PreyUpdateJobV6 preyJob = new PreyUpdateJobV6
         {
             deltaTime = Time.deltaTime,
             currentPositions = preyPositions,
@@ -210,7 +210,7 @@ public class BoidsManagerV4 : MonoBehaviour
         };
 
         // Create predator update job
-        PredatorUpdateJobV4 predatorJob = new PredatorUpdateJobV4
+        PredatorUpdateJobV6 predatorJob = new PredatorUpdateJobV6
         {
             deltaTime = Time.deltaTime,
             currentPositions = predatorPositions,
@@ -293,7 +293,7 @@ public class BoidsManagerV4 : MonoBehaviour
     }
 }
 [BurstCompile]
-public struct PreyUpdateJobV4 : IJobParallelFor
+public struct PreyUpdateJobV6 : IJobParallelFor
 {
     [ReadOnly] public NativeArray<float2> boundaryPoints;
     [ReadOnly] public NativeArray<float2> antiBoundaryPoints;  // Array of anti-boundary shapes
@@ -560,7 +560,7 @@ private bool IsPointInPolygon(float2 point, NativeArray<float2> points)
 }
 
 [BurstCompile]
-public struct PredatorUpdateJobV4 : IJobParallelFor
+public struct PredatorUpdateJobV6 : IJobParallelFor
 {
     [ReadOnly] public NativeArray<float2> boundaryPoints;
     // Time and position/velocity data
