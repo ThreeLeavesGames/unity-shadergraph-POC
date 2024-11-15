@@ -5,7 +5,7 @@ public class GraphicsAPIInstancing : MonoBehaviour
      public Mesh instanceMesh;
     public Material instanceMaterial;
     private Matrix4x4[] matrices;
-    private const int TOTAL_INSTANCES = 50000;
+    private const int TOTAL_INSTANCES = 5000;
     
     private MaterialPropertyBlock propertyBlock;
     private ComputeBuffer propertyBuffer;
@@ -51,7 +51,7 @@ public class GraphicsAPIInstancing : MonoBehaviour
         for (int i = 0; i < TOTAL_INSTANCES; i++)
         {
             float t = i / (float)TOTAL_INSTANCES;
-            instanceData[i].color = Color.HSVToRGB(t*0.5f, 1, 1);
+            instanceData[i].color = Random.ColorHSV();
         }
         
         propertyBuffer.SetData(instanceData);

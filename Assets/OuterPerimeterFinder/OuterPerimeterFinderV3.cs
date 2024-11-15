@@ -18,7 +18,7 @@ public class OuterPerimeterFinderV3 : MonoBehaviour
     public Color pointColor = Color.red;
     public float pointSize = 0.1f;
     
-    void Start()
+    void Awake()
     {
         InitializeBoundary();
         FindTwoLoops();
