@@ -1,6 +1,6 @@
 Shader "Custom/GraphicsAPIInstancing"
 {
-   SubShader
+    SubShader
     {
         Tags 
         { 
@@ -11,28 +11,31 @@ Shader "Custom/GraphicsAPIInstancing"
 
         Pass
         {
+            Name "ForwardLit"
+                        Tags { "LightMode" = "UniversalForward" }
+                        
+                          ZWrite On
+            ZTest LEqual
+            Cull Back
+            
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 4.5
-             // Make sure we enable instancing
             #pragma multi_compile_instancing
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
-
-           
             
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                uint instanceID : SV_InstanceID;  // Added explicit instance ID semantic
+                uint instanceID : SV_InstanceID;
+                // UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float4 color : COLOR0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct InstanceData
@@ -44,15 +47,11 @@ Shader "Custom/GraphicsAPIInstancing"
             
             Varyings vert(Attributes input)
             {
-                Varyings output = (Varyings)0;  // Initialize to avoid warning
+                Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
                 
-                uint instanceID = input.instanceID;
-                InstanceData data = _InstanceData[instanceID];
-                
-                float4 positionOS = input.positionOS;                
-                output.positionCS = TransformObjectToHClip(positionOS.xyz);
+                InstanceData data = _InstanceData[input.instanceID];
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.color = data.color;
                 
                 return output;
@@ -60,7 +59,6 @@ Shader "Custom/GraphicsAPIInstancing"
 
             half4 frag(Varyings input) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
                 return input.color;
             }
             ENDHLSL

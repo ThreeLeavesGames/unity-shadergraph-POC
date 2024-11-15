@@ -2,7 +2,7 @@ Shader "Unlit/GPU-instancing"
 {
    //show values to edit in inspector
 	Properties{
-		[PerRendererData] _Color ("Color", Color) = (0, 0, 0, 1)
+		[PerRendererData] _Color ("Color", Color) = (1, 0, 0, 1)
 	}
 
 	SubShader{
