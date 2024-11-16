@@ -62,18 +62,18 @@ public class BoidsManagerV7 : MonoBehaviour
 
 
     // Native arrays for current frame data (persistent memory)
-    private NativeArray<float3> preyPositions;      // Current prey positions
-    private NativeArray<float3> preyVelocities;     // Current prey velocities
-    private NativeArray<float3> predatorPositions;   // Current predator positions
-    private NativeArray<float3> predatorVelocities;  // Current predator velocities
+    public NativeArray<float3> preyPositions;      // Current prey positions
+    public NativeArray<float3> preyVelocities;     // Current prey velocities
+    public NativeArray<float3> predatorPositions;   // Current predator positions
+    public NativeArray<float3> predatorVelocities;  // Current predator velocities
     // private Transform[] preyTransforms;             // References to prey GameObjects
     // private Transform[] predatorTransforms;         // References to predator GameObjects
 
     // Double-buffered arrays for next frame data (prevents race conditions)
-    private NativeArray<float3> newPreyPositions;     // Next frame prey positions
-    private NativeArray<float3> newPreyVelocities;    // Next frame prey velocities
-    private NativeArray<float3> newPredatorPositions;  // Next frame predator positions
-    private NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
+    public NativeArray<float3> newPreyPositions;     // Next frame prey positions
+    public NativeArray<float3> newPreyVelocities;    // Next frame prey velocities
+    public NativeArray<float3> newPredatorPositions;  // Next frame predator positions
+    public NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
 
     void Start()
     {
