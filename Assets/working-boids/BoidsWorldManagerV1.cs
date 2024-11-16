@@ -10,8 +10,8 @@ public class BoidsM
     public string flockName = "Flock";
     public int preyCount = 100;
     public int predatorCount = 3;
-    public Vector3[] boundrypoints;
-    public Vector3[] antiBoundrypoints1;
+    public Vector3[] boundrypoints = new Vector3[100];
+    public Vector3[] antiBoundrypoints1 = new Vector3[100];
     public Matrix4x4[] preyMatrices;     
     public Matrix4x4[] predatorMatrices; 
     public NativeArray<float3> newPreyPositions;     // Next frame prey positions
@@ -26,6 +26,7 @@ public class BoidObject
 {
     public GameObject boidGameObject;
     public bool isEnabled = true;
+    public BoidsM boidsM = new BoidsM();
 }
 
 public class BoidsWorldManagerV1 : MonoBehaviour
@@ -64,5 +65,26 @@ public class BoidsWorldManagerV1 : MonoBehaviour
             } 
         }
       
+    }
+    
+    public void IncreaseBoidsByRandomPoints(int pondIndex,int predatorCount,int preyCount)
+    {
+        BoidObject tempBoidObject = boidsMs[pondIndex];
+        BoidsM tempBoidsM = tempBoidObject.boidsM;
+        BoidsManagerV7 BMV7 = tempBoidObject.boidGameObject.GetComponent<BoidsManagerV7>();
+        tempBoidsM.preyCount = BMV7.preyCount;
+        tempBoidsM.predatorCount = BMV7.predatorCount;
+        tempBoidsM.newPreyPositions = BMV7.newPreyPositions;
+        tempBoidsM.newPreyVelocities = BMV7.newPreyVelocities;
+        tempBoidsM.newPredatorPositions = BMV7.newPredatorPositions;
+        tempBoidsM.newPredatorVelocities = BMV7.newPredatorVelocities;
+
+
+
+    }
+    
+    public void DecreaseBoidsByRandomPoints(int pondIndex,int predatorCount,int preyCount)
+    {
+        Debug.Log("editor");
     }
 }
