@@ -11,7 +11,7 @@ using Unity.Burst;
 // }
 
 
-public class BoidsManagerV6 : MonoBehaviour
+public class BoidsManagerV7 : MonoBehaviour
 {
     [Header("Polygon Boundary")]
     public Vector3[] polygonPoints;   // Set this in inspector or via code
@@ -77,8 +77,8 @@ public class BoidsManagerV6 : MonoBehaviour
 
     void Start()
     {
-        polygonPoints = GetComponent<OuterPerimeterFinderV3>().loop1.ToArray();
-        antiPolygonPoints = GetComponent<OuterPerimeterFinderV3>().loop2.ToArray();
+        // polygonPoints = GetComponent<OuterPerimeterFinderV3>().loop1.ToArray();
+        // antiPolygonPoints = GetComponent<OuterPerimeterFinderV3>().loop2.ToArray();
         
         preyMatrices = new Matrix4x4[preyCount];
         predatorMatrices = new Matrix4x4[predatorCount];
@@ -158,16 +158,35 @@ public class BoidsManagerV6 : MonoBehaviour
     {
         for (int i = 0; i < preyCount; i++)
         {
-            // Use Random.insideUnitCircle for X-Z plane spawn
-            Vector2 randomCircle =new Vector2(transform.position.x,transform.position.z) + UnityEngine.Random.insideUnitCircle * spawnRadius;
-            Vector3 randomPos = new Vector3(randomCircle.x, 0, randomCircle.y); // Y is always 0
+         
+            float minX = float.MaxValue, minZ = float.MaxValue;
+            float maxX = float.MinValue, maxZ = float.MinValue;
+    
+            for (int j = 0; j < polygonPoints.Length; j++)
+            {
+                minX = math.min(minX, polygonPoints[j].x);
+                maxX = math.max(maxX, polygonPoints[j].x);
+                minZ = math.min(minZ, polygonPoints[j].z);
+                maxZ = math.max(maxZ, polygonPoints[j].z);
+            }
+
+            Vector3 randomPos;
+            float2 testPoint;
+            do
+            {
+                do
+                {
+                    float randX = UnityEngine.Random.Range(minX, maxX);
+                    float randZ = UnityEngine.Random.Range(minZ, maxZ);
+                    testPoint = new float2(randX,randZ);
+                } while (PolygonUtility.IsPointInPolygon(testPoint,antiPolygonPoints) );
+              
+            } while (!PolygonUtility.IsPointInPolygon(testPoint,polygonPoints) );
+
+            randomPos = new Vector3(testPoint.x, 0, testPoint.y);
             
-            // Instantiate prey and store transform
-            // GameObject prey = Instantiate(preyPrefab, randomPos, UnityEngine.Random.rotation);
-            // preyTransforms[i] = prey.transform;
             preyPositions[i] = randomPos;
         
-            // Create random direction in X-Z plane
             Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
             preyVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * preySpeed;
             
@@ -177,11 +196,31 @@ public class BoidsManagerV6 : MonoBehaviour
 
         for (int i = 0; i < predatorCount; i++)
         {
-            // Use Random.insideUnitCircle for X-Z plane spawn
-            Vector2 randomCircle =new Vector2(transform.position.x,transform.position.z) + UnityEngine.Random.insideUnitCircle * spawnRadius;
-            Vector3 randomPos = new Vector3(randomCircle.x, 0, randomCircle.y); // Y is always 0
-            // GameObject predator = Instantiate(predatorPrefab, randomPos, UnityEngine.Random.rotation);
-            // predatorTransforms[i] = predator.transform;
+            float minX = float.MaxValue, minZ = float.MaxValue;
+            float maxX = float.MinValue, maxZ = float.MinValue;
+    
+            for (int j = 0; j < polygonPoints.Length; j++)
+            {
+                minX = math.min(minX, polygonPoints[j].x);
+                maxX = math.max(maxX, polygonPoints[j].x);
+                minZ = math.min(minZ, polygonPoints[j].z);
+                maxZ = math.max(maxZ, polygonPoints[j].z);
+            }
+
+            Vector3 randomPos;
+            float2 testPoint;
+            do
+            {
+                do
+                {
+                    float randX = UnityEngine.Random.Range(minX, maxX);
+                    float randZ = UnityEngine.Random.Range(minZ, maxZ);
+                    testPoint = new float2(randX,randZ);
+                } while (PolygonUtility.IsPointInPolygon(testPoint,antiPolygonPoints) );
+              
+            } while (!PolygonUtility.IsPointInPolygon(testPoint,polygonPoints) );
+
+            randomPos = new Vector3(testPoint.x, 0, testPoint.y);
             predatorPositions[i] = randomPos;
         
             // Create random direction in X-Z plane
@@ -211,7 +250,7 @@ public class BoidsManagerV6 : MonoBehaviour
     void UpdateBoidsPositions()
     {
         // Create prey update job
-        PreyUpdateJobV6 preyJob = new PreyUpdateJobV6
+        PreyUpdateJobV7 preyJob = new PreyUpdateJobV7
         {
             deltaTime = Time.deltaTime,
             currentPositions = preyPositions,
@@ -235,7 +274,7 @@ public class BoidsManagerV6 : MonoBehaviour
         };
 
         // Create predator update job
-        PredatorUpdateJobV6 predatorJob = new PredatorUpdateJobV6
+        PredatorUpdateJobV7 predatorJob = new PredatorUpdateJobV7
         {
             deltaTime = Time.deltaTime,
             currentPositions = predatorPositions,
@@ -319,7 +358,7 @@ public class BoidsManagerV6 : MonoBehaviour
     }
 }
 [BurstCompile]
-public struct PreyUpdateJobV6 : IJobParallelFor
+public struct PreyUpdateJobV7 : IJobParallelFor
 {
     [ReadOnly] public NativeArray<float2> boundaryPoints;
     [ReadOnly] public NativeArray<float2> antiBoundaryPoints;  // Array of anti-boundary shapes
@@ -488,7 +527,7 @@ public void Execute(int index)
 }
 
 [BurstCompile]
-public struct PredatorUpdateJobV6 : IJobParallelFor
+public struct PredatorUpdateJobV7 : IJobParallelFor
 {
     [ReadOnly] public NativeArray<float2> boundaryPoints;
     [ReadOnly] public NativeArray<float2> antiBoundaryPoints;  // Array of anti-boundary shapes
