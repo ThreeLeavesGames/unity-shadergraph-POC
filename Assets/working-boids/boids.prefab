@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3604478100467147455
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3030422931663360313}
+  - component: {fileID: 2848847648492108931}
+  m_Layer: 0
+  m_Name: boids
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3030422931663360313
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3604478100467147455}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2848847648492108931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3604478100467147455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 159eba97208bdfe4fa2adaa5de855180, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  polygonPoints: []
+  antiPolygonPoints: []
+  antiBoundaryForce: 1.35
+  boidMesh: {fileID: -462981019419857548, guid: 70f163eacbe73264c87a600a2a4cbe10, type: 3}
+  preyMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  predatorMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  preyPrefab: {fileID: 7717580253997435371, guid: f76857a83d61200469b2352e6c47fb89, type: 3}
+  predatorPrefab: {fileID: 2957391967433091747, guid: be9a87164bb6db5458f2e83c25eb484b, type: 3}
+  preyCount: 724
+  predatorCount: 32
+  spawnRadius: 43.21
+  preySpeed: 7.24
+  preyPerceptionRadius: 5.12
+  preyCohesionWeight: 3.56
+  preySeparationWeight: 5.87
+  preyAlignmentWeight: 4.56
+  preyAvoidPredatorWeight: 28.07
+  predatorSpeed: 15.87
+  predatorPerceptionRadius: 10.63
+  predatorChaseWeight: 0
+  predatorSeparationRadius: 14.95
+  predatorSeparationWeight: 25.14
+  boundarySize: 20
+  softBoundaryOffset: 1
+  boundaryTurnForce: 16.31
