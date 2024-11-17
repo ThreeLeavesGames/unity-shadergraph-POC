@@ -75,7 +75,7 @@ public class BoidsManagerV7 : MonoBehaviour
     public NativeArray<float3> newPreyVelocities;    // Next frame prey velocities
     public NativeArray<float3> newPredatorPositions;  // Next frame predator positions
     public NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
-
+    private JobHandle predatorHandle;
     void Start()
     {
 
@@ -133,31 +133,103 @@ public class BoidsManagerV7 : MonoBehaviour
         }
     }
 
-    void ReInitializeArrays(int preyCount,int predatorCount)
-    {
-        preyMatrices = new Matrix4x4[preyCount];
-        predatorMatrices = new Matrix4x4[predatorCount];
-        nativePreyMatrices = new NativeArray<Matrix4x4>(preyCount, Allocator.Persistent);
-        nativePredatorMatrices = new NativeArray<Matrix4x4>(predatorCount, Allocator.Persistent);
-        
-        // Initialize main arrays with persistent allocator for long-term storage
-        preyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
-        preyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
-        predatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
-        predatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
 
-        // Initialize temporary arrays for double buffering
-        newPreyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
-        newPreyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
-        newPredatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
-        newPredatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
-
-    }
-     void ReSpawnBoids()
-    {
-       
-    }
     
+    public void Reset(int newPreyCount, int newPredatorCount)
+    {
+   // Complete any pending jobs
+    predatorHandle.Complete();
+    
+    // Create temporary arrays with sizes matching the new counts to avoid overflow
+    NativeArray<float3> tempPreyPositions = new NativeArray<float3>(
+        math.min(newPreyCount, newPreyPositions.Length), Allocator.Temp);
+    NativeArray<float3> tempPreyVelocities = new NativeArray<float3>(
+        math.min(newPreyCount, newPreyVelocities.Length), Allocator.Temp);
+    NativeArray<Matrix4x4> tempPreyMatrices = new NativeArray<Matrix4x4>(
+        math.min(newPreyCount, nativePreyMatrices.Length), Allocator.Temp);
+    
+    NativeArray<float3> tempPredatorPositions = new NativeArray<float3>(
+        math.min(newPredatorCount, newPredatorPositions.Length), Allocator.Temp);
+    NativeArray<float3> tempPredatorVelocities = new NativeArray<float3>(
+        math.min(newPredatorCount, newPredatorVelocities.Length), Allocator.Temp);
+    NativeArray<Matrix4x4> tempPredatorMatrices = new NativeArray<Matrix4x4>(
+        math.min(newPredatorCount, nativePredatorMatrices.Length), Allocator.Temp);
+
+    // Copy only the data we want to keep
+    for (int i = 0; i < tempPreyPositions.Length; i++)
+    {
+        tempPreyPositions[i] = newPreyPositions[i];
+        tempPreyVelocities[i] = newPreyVelocities[i];
+        tempPreyMatrices[i] = nativePreyMatrices[i];
+    }
+
+    for (int i = 0; i < tempPredatorPositions.Length; i++)
+    {
+        tempPredatorPositions[i] = newPredatorPositions[i];
+        tempPredatorVelocities[i] = newPredatorVelocities[i];
+        tempPredatorMatrices[i] = nativePredatorMatrices[i];
+    }
+
+    // Safely dispose existing arrays
+    SafeDispose();
+
+    // Set new counts
+    preyCount = newPreyCount;
+    predatorCount = newPredatorCount;
+
+    // Initialize new arrays
+    InitializeArrays();
+    InitializeBoundaryPoints();
+
+    // Copy saved data back
+    for (int i = 0; i < tempPreyPositions.Length; i++)
+    {
+        preyPositions[i] = tempPreyPositions[i];
+        preyVelocities[i] = tempPreyVelocities[i];
+        nativePreyMatrices[i] = tempPreyMatrices[i];
+    }
+
+    for (int i = 0; i < tempPredatorPositions.Length; i++)
+    {
+        predatorPositions[i] = tempPredatorPositions[i];
+        predatorVelocities[i] = tempPredatorVelocities[i];
+        nativePredatorMatrices[i] = tempPredatorMatrices[i];
+    }
+
+    // Spawn new entities if needed (for increased counts)
+    for (int i = tempPreyPositions.Length; i < preyCount; i++)
+    {
+        Vector3 randomPos = getRandomPosition(polygonPoints, antiPolygonPoints);
+        preyPositions[i] = randomPos;
+        Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
+        preyVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * preySpeed;
+        nativePreyMatrices[i] = Matrix4x4.TRS(randomPos, UnityEngine.Random.rotation, Vector3.one * 6);
+    }
+
+    for (int i = tempPredatorPositions.Length; i < predatorCount; i++)
+    {
+        Vector3 randomPos = getRandomPosition(polygonPoints, antiPolygonPoints);
+        predatorPositions[i] = randomPos;
+        Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
+        predatorVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * predatorSpeed;
+        nativePredatorMatrices[i] = Matrix4x4.TRS(randomPos, UnityEngine.Random.rotation, Vector3.one * 20);
+    }
+
+    // Initialize double buffer arrays
+    preyPositions.CopyTo(newPreyPositions);
+    preyVelocities.CopyTo(newPreyVelocities);
+    predatorPositions.CopyTo(newPredatorPositions);
+    predatorVelocities.CopyTo(newPredatorVelocities);
+
+    // Dispose temporary arrays
+    tempPreyPositions.Dispose();
+    tempPreyVelocities.Dispose();
+    tempPreyMatrices.Dispose();
+    tempPredatorPositions.Dispose();
+    tempPredatorVelocities.Dispose();
+    tempPredatorMatrices.Dispose();
+    }
+
     void InitializeArrays()
     {
         preyMatrices = new Matrix4x4[preyCount];
@@ -177,47 +249,42 @@ public class BoidsManagerV7 : MonoBehaviour
         newPredatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
         newPredatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
 
-        // // Initialize transform arrays for GameObject references
-        // preyTransforms = new Transform[preyCount];
-        // predatorTransforms = new Transform[predatorCount];
     }
 
-    /// <summary>
-    /// Spawns initial boids in the scene and initializes their positions/velocities
-    /// </summary>
+    private Vector3 getRandomPosition(Vector3[] points1,Vector3[] points2)
+    {
+        float minX = float.MaxValue, minZ = float.MaxValue;
+        float maxX = float.MinValue, maxZ = float.MinValue;
+    
+        for (int j = 0; j < points1.Length; j++)
+        {
+            minX = math.min(minX, points1[j].x);
+            maxX = math.max(maxX, points1[j].x);
+            minZ = math.min(minZ, points1[j].z);
+            maxZ = math.max(maxZ, points1[j].z);
+        }
+        float2 testPoint;
+        do
+        {
+            do
+            {
+                float randX = UnityEngine.Random.Range(minX, maxX);
+                float randZ = UnityEngine.Random.Range(minZ, maxZ);
+                testPoint = new float2(randX,randZ);
+            } while (PolygonUtility.IsPointInPolygon(testPoint,points2) );
+              
+        } while (!PolygonUtility.IsPointInPolygon(testPoint,points1) );
+
+        return new Vector3(testPoint.x, 0, testPoint.y);
+    }
+
     void SpawnBoids()
     {
         for (int i = 0; i < preyCount; i++)
         {
-         
-            float minX = float.MaxValue, minZ = float.MaxValue;
-            float maxX = float.MinValue, maxZ = float.MinValue;
-    
-            for (int j = 0; j < polygonPoints.Length; j++)
-            {
-                minX = math.min(minX, polygonPoints[j].x);
-                maxX = math.max(maxX, polygonPoints[j].x);
-                minZ = math.min(minZ, polygonPoints[j].z);
-                maxZ = math.max(maxZ, polygonPoints[j].z);
-            }
-
-            Vector3 randomPos;
-            float2 testPoint;
-            do
-            {
-                do
-                {
-                    float randX = UnityEngine.Random.Range(minX, maxX);
-                    float randZ = UnityEngine.Random.Range(minZ, maxZ);
-                    testPoint = new float2(randX,randZ);
-                } while (PolygonUtility.IsPointInPolygon(testPoint,antiPolygonPoints) );
-              
-            } while (!PolygonUtility.IsPointInPolygon(testPoint,polygonPoints) );
-
-            randomPos = new Vector3(testPoint.x, 0, testPoint.y);
             
+            Vector3 randomPos = getRandomPosition(polygonPoints,antiPolygonPoints);
             preyPositions[i] = randomPos;
-        
             Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
             preyVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * preySpeed;
             
@@ -227,37 +294,10 @@ public class BoidsManagerV7 : MonoBehaviour
 
         for (int i = 0; i < predatorCount; i++)
         {
-            float minX = float.MaxValue, minZ = float.MaxValue;
-            float maxX = float.MinValue, maxZ = float.MinValue;
-    
-            for (int j = 0; j < polygonPoints.Length; j++)
-            {
-                minX = math.min(minX, polygonPoints[j].x);
-                maxX = math.max(maxX, polygonPoints[j].x);
-                minZ = math.min(minZ, polygonPoints[j].z);
-                maxZ = math.max(maxZ, polygonPoints[j].z);
-            }
-
-            Vector3 randomPos;
-            float2 testPoint;
-            do
-            {
-                do
-                {
-                    float randX = UnityEngine.Random.Range(minX, maxX);
-                    float randZ = UnityEngine.Random.Range(minZ, maxZ);
-                    testPoint = new float2(randX,randZ);
-                } while (PolygonUtility.IsPointInPolygon(testPoint,antiPolygonPoints) );
-              
-            } while (!PolygonUtility.IsPointInPolygon(testPoint,polygonPoints) );
-
-            randomPos = new Vector3(testPoint.x, 0, testPoint.y);
+            Vector3 randomPos = getRandomPosition(polygonPoints,antiPolygonPoints);
             predatorPositions[i] = randomPos;
-        
-            // Create random direction in X-Z plane
             Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
             predatorVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * predatorSpeed;
-            
             nativePredatorMatrices[i] = Matrix4x4.TRS(randomPos,  UnityEngine.Random.rotation, Vector3.one * 20);
 
         }
@@ -278,8 +318,9 @@ public class BoidsManagerV7 : MonoBehaviour
         UpdateTransforms();
     }
 
-    void UpdateBoidsPositions()
+    public void UpdateBoidsPositions()
     {
+        predatorHandle.Complete();
         // Create prey update job
         PreyUpdateJobV7 preyJob = new PreyUpdateJobV7
         {
@@ -328,7 +369,7 @@ public class BoidsManagerV7 : MonoBehaviour
 
         // Schedule both jobs
         JobHandle preyHandle = preyJob.Schedule(preyCount, 64);
-        JobHandle predatorHandle = predatorJob.Schedule(predatorCount, 32, preyHandle);
+         predatorHandle = predatorJob.Schedule(predatorCount, 32, preyHandle);
 
         // Wait for all jobs to complete
         predatorHandle.Complete();
@@ -370,27 +411,28 @@ public class BoidsManagerV7 : MonoBehaviour
 
     void OnDestroy()
     {
-        Dispose();
+        SafeDispose();
 
     }
 
-    public void Dispose()
+    public void SafeDispose()
     {
-        // Dispose all NativeArrays
-        preyPositions.Dispose();
-        preyVelocities.Dispose();
-        predatorPositions.Dispose();
-        predatorVelocities.Dispose();
-        newPreyPositions.Dispose();
-        newPreyVelocities.Dispose();
-        newPredatorPositions.Dispose();
-        newPredatorVelocities.Dispose();
-        if (boundaryPoints.IsCreated)
-            boundaryPoints.Dispose();
-        if (antiBoundaryPoints.IsCreated)
-            antiBoundaryPoints.Dispose();
-        nativePredatorMatrices.Dispose();
-        nativePreyMatrices.Dispose();
+        // Complete any pending jobs first
+        predatorHandle.Complete();
+
+        // Dispose all NativeArrays if they exist
+        if (preyPositions.IsCreated) preyPositions.Dispose();
+        if (preyVelocities.IsCreated) preyVelocities.Dispose();
+        if (predatorPositions.IsCreated) predatorPositions.Dispose();
+        if (predatorVelocities.IsCreated) predatorVelocities.Dispose();
+        if (newPreyPositions.IsCreated) newPreyPositions.Dispose();
+        if (newPreyVelocities.IsCreated) newPreyVelocities.Dispose();
+        if (newPredatorPositions.IsCreated) newPredatorPositions.Dispose();
+        if (newPredatorVelocities.IsCreated) newPredatorVelocities.Dispose();
+        if (boundaryPoints.IsCreated) boundaryPoints.Dispose();
+        if (antiBoundaryPoints.IsCreated) antiBoundaryPoints.Dispose();
+        if (nativePredatorMatrices.IsCreated) nativePredatorMatrices.Dispose();
+        if (nativePreyMatrices.IsCreated) nativePreyMatrices.Dispose();
     }
 }
 [BurstCompile]

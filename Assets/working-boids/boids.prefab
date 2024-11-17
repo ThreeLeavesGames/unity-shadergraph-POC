@@ -52,8 +52,8 @@ MonoBehaviour:
   predatorMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
   preyPrefab: {fileID: 7717580253997435371, guid: f76857a83d61200469b2352e6c47fb89, type: 3}
   predatorPrefab: {fileID: 2957391967433091747, guid: be9a87164bb6db5458f2e83c25eb484b, type: 3}
-  preyCount: 724
-  predatorCount: 11
+  preyCount: 100
+  predatorCount: 5
   spawnRadius: 43.21
   preySpeed: 7.24
   preyPerceptionRadius: 5.12
