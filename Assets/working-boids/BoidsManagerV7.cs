@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
@@ -28,8 +29,8 @@ public class BoidsManagerV7 : MonoBehaviour
     public Material predatorMaterial;
     private Matrix4x4[] preyMatrices;     
     private Matrix4x4[] predatorMatrices;     
-    private NativeArray<Matrix4x4> nativePreyMatrices;
-    private NativeArray<Matrix4x4> nativePredatorMatrices;
+    public NativeArray<Matrix4x4> nativePreyMatrices;
+    public NativeArray<Matrix4x4> nativePredatorMatrices;
     
     [Header("Spawn Settings")]
     public GameObject preyPrefab;
@@ -77,13 +78,13 @@ public class BoidsManagerV7 : MonoBehaviour
 
     void Start()
     {
-        // polygonPoints = GetComponent<OuterPerimeterFinderV3>().loop1.ToArray();
-        // antiPolygonPoints = GetComponent<OuterPerimeterFinderV3>().loop2.ToArray();
-        
-        preyMatrices = new Matrix4x4[preyCount];
-        predatorMatrices = new Matrix4x4[predatorCount];
-        nativePreyMatrices = new NativeArray<Matrix4x4>(preyCount, Allocator.Persistent);
-        nativePredatorMatrices = new NativeArray<Matrix4x4>(predatorCount, Allocator.Persistent);
+
+        startScript();
+
+    }
+    
+    public void startScript()
+    {
         
         InitializeBoundaryPoints();
         InitializeArrays();
@@ -132,8 +133,38 @@ public class BoidsManagerV7 : MonoBehaviour
         }
     }
 
+    void ReInitializeArrays(int preyCount,int predatorCount)
+    {
+        preyMatrices = new Matrix4x4[preyCount];
+        predatorMatrices = new Matrix4x4[predatorCount];
+        nativePreyMatrices = new NativeArray<Matrix4x4>(preyCount, Allocator.Persistent);
+        nativePredatorMatrices = new NativeArray<Matrix4x4>(predatorCount, Allocator.Persistent);
+        
+        // Initialize main arrays with persistent allocator for long-term storage
+        preyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
+        preyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
+        predatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
+        predatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
+
+        // Initialize temporary arrays for double buffering
+        newPreyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
+        newPreyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
+        newPredatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
+        newPredatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
+
+    }
+     void ReSpawnBoids()
+    {
+       
+    }
+    
     void InitializeArrays()
     {
+        preyMatrices = new Matrix4x4[preyCount];
+        predatorMatrices = new Matrix4x4[predatorCount];
+        nativePreyMatrices = new NativeArray<Matrix4x4>(preyCount, Allocator.Persistent);
+        nativePredatorMatrices = new NativeArray<Matrix4x4>(predatorCount, Allocator.Persistent);
+        
         // Initialize main arrays with persistent allocator for long-term storage
         preyPositions = new NativeArray<float3>(preyCount, Allocator.Persistent);
         preyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
@@ -227,7 +258,7 @@ public class BoidsManagerV7 : MonoBehaviour
             Vector2 randomDir = UnityEngine.Random.insideUnitCircle.normalized;
             predatorVelocities[i] = new float3(randomDir.x, 0, randomDir.y) * predatorSpeed;
             
-            predatorMatrices[i] = Matrix4x4.TRS(randomPos,  UnityEngine.Random.rotation, Vector3.one * 20);
+            nativePredatorMatrices[i] = Matrix4x4.TRS(randomPos,  UnityEngine.Random.rotation, Vector3.one * 20);
 
         }
 
@@ -339,6 +370,12 @@ public class BoidsManagerV7 : MonoBehaviour
 
     void OnDestroy()
     {
+        Dispose();
+
+    }
+
+    public void Dispose()
+    {
         // Dispose all NativeArrays
         preyPositions.Dispose();
         preyVelocities.Dispose();
@@ -354,7 +391,6 @@ public class BoidsManagerV7 : MonoBehaviour
             antiBoundaryPoints.Dispose();
         nativePredatorMatrices.Dispose();
         nativePreyMatrices.Dispose();
-
     }
 }
 [BurstCompile]
