@@ -18,7 +18,8 @@ public class BoidsM
     public NativeArray<float3> newPreyVelocities;    // Next frame prey velocities
     public NativeArray<float3> newPredatorPositions;  // Next frame predator positions
     public NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
-
+    public NativeArray<Matrix4x4> nativePreyMatrices;
+    public NativeArray<Matrix4x4> nativePredatorMatrices;
 }
 
 [Serializable]
@@ -69,17 +70,27 @@ public class BoidsWorldManagerV1 : MonoBehaviour
     
     public void IncreaseBoidsByRandomPoints(int pondIndex,int predatorCount,int preyCount)
     {
-        BoidObject tempBoidObject = boidsMs[pondIndex];
-        BoidsM tempBoidsM = tempBoidObject.boidsM;
-        BoidsManagerV7 BMV7 = tempBoidObject.boidGameObject.GetComponent<BoidsManagerV7>();
+        BoidObject BoidObject = boidsMs[pondIndex];
+        BoidsM tempBoidsM = new BoidsM();
+        BoidsManagerV7 BMV7 = BoidObject.boidGameObject.GetComponent<BoidsManagerV7>();
+        
         tempBoidsM.preyCount = BMV7.preyCount;
         tempBoidsM.predatorCount = BMV7.predatorCount;
+        
         tempBoidsM.newPreyPositions = BMV7.newPreyPositions;
         tempBoidsM.newPreyVelocities = BMV7.newPreyVelocities;
+        tempBoidsM.nativePreyMatrices = BMV7.nativePreyMatrices;
+
         tempBoidsM.newPredatorPositions = BMV7.newPredatorPositions;
         tempBoidsM.newPredatorVelocities = BMV7.newPredatorVelocities;
+        tempBoidsM.nativePredatorMatrices = BMV7.nativePredatorMatrices;
 
+        // tempBoidsM.preyMatrices = BMV7.newPredatorVelocities;
+        // tempBoidsM.predatorMatrices = BMV7.newPredatorVelocities;
 
+        //dispose
+        //reinitialize
+        //respawn(nativePreyMatrices,preyVelocities,preyPositions,predatorMatrices,predatorVelocities,predatorPositions)
 
     }
     

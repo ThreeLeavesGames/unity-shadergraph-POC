@@ -53,7 +53,7 @@ MonoBehaviour:
   preyPrefab: {fileID: 7717580253997435371, guid: f76857a83d61200469b2352e6c47fb89, type: 3}
   predatorPrefab: {fileID: 2957391967433091747, guid: be9a87164bb6db5458f2e83c25eb484b, type: 3}
   preyCount: 724
-  predatorCount: 32
+  predatorCount: 11
   spawnRadius: 43.21
   preySpeed: 7.24
   preyPerceptionRadius: 5.12
@@ -62,7 +62,7 @@ MonoBehaviour:
   preyAlignmentWeight: 4.56
   preyAvoidPredatorWeight: 28.07
   predatorSpeed: 15.87
-  predatorPerceptionRadius: 10.63
+  predatorPerceptionRadius: 22.77
   predatorChaseWeight: 0
   predatorSeparationRadius: 14.95
   predatorSeparationWeight: 25.14
