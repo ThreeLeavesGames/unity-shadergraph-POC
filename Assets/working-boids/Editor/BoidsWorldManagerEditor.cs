@@ -13,11 +13,11 @@ public class BoidsWorldManagerEditor : UnityEditor.Editor
 
         if(GUILayout.Button("Increase boids"))
         {
-            script.IncreaseBoidsByRandomPoints(0,500,20);
+            script.IncreaseBoidsByRandomPoints(0,100,5);
         }
         if(GUILayout.Button("Decrease boids"))
         {
-            script.DecreaseBoidsByRandomPoints(1,500,20);
+            script.DecreaseBoidsByRandomPoints(0,100,5);
         }
     }
 }

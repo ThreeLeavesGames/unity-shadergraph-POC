@@ -4,30 +4,12 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
-[System.Serializable]
-public class BoidsM
-{
-    public string flockName = "Flock";
-    public int preyCount = 100;
-    public int predatorCount = 3;
-    public Vector3[] boundrypoints = new Vector3[100];
-    public Vector3[] antiBoundrypoints1 = new Vector3[100];
-    public Matrix4x4[] preyMatrices;     
-    public Matrix4x4[] predatorMatrices; 
-    public NativeArray<float3> newPreyPositions;     // Next frame prey positions
-    public NativeArray<float3> newPreyVelocities;    // Next frame prey velocities
-    public NativeArray<float3> newPredatorPositions;  // Next frame predator positions
-    public NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
-    public NativeArray<Matrix4x4> nativePreyMatrices;
-    public NativeArray<Matrix4x4> nativePredatorMatrices;
-}
 
 [Serializable]
 public class BoidObject
 {
     public GameObject boidGameObject;
     public bool isEnabled = true;
-    public BoidsM boidsM = new BoidsM();
 }
 
 public class BoidsWorldManagerV1 : MonoBehaviour
@@ -68,34 +50,22 @@ public class BoidsWorldManagerV1 : MonoBehaviour
       
     }
     
-    public void IncreaseBoidsByRandomPoints(int pondIndex,int predatorCount,int preyCount)
+    public void IncreaseBoidsByRandomPoints(int pondIndex,int preyCount,int predatorCount)
     {
         BoidObject BoidObject = boidsMs[pondIndex];
-        BoidsM tempBoidsM = new BoidsM();
         BoidsManagerV7 BMV7 = BoidObject.boidGameObject.GetComponent<BoidsManagerV7>();
-        
-        tempBoidsM.preyCount = BMV7.preyCount;
-        tempBoidsM.predatorCount = BMV7.predatorCount;
-        
-        tempBoidsM.newPreyPositions = BMV7.newPreyPositions;
-        tempBoidsM.newPreyVelocities = BMV7.newPreyVelocities;
-        tempBoidsM.nativePreyMatrices = BMV7.nativePreyMatrices;
-
-        tempBoidsM.newPredatorPositions = BMV7.newPredatorPositions;
-        tempBoidsM.newPredatorVelocities = BMV7.newPredatorVelocities;
-        tempBoidsM.nativePredatorMatrices = BMV7.nativePredatorMatrices;
-
-        // tempBoidsM.preyMatrices = BMV7.newPredatorVelocities;
-        // tempBoidsM.predatorMatrices = BMV7.newPredatorVelocities;
-
-        //dispose
-        //reinitialize
-        //respawn(nativePreyMatrices,preyVelocities,preyPositions,predatorMatrices,predatorVelocities,predatorPositions)
-
+        BMV7.Reset(BMV7.preyCount+preyCount,BMV7.predatorCount+predatorCount);
     }
     
-    public void DecreaseBoidsByRandomPoints(int pondIndex,int predatorCount,int preyCount)
+    public void DecreaseBoidsByRandomPoints(int pondIndex,int preyCount ,int predatorCount)
     {
-        Debug.Log("editor");
+        BoidObject BoidObject = boidsMs[pondIndex];
+        BoidsManagerV7 BMV7 = BoidObject.boidGameObject.GetComponent<BoidsManagerV7>();
+        int newPreyCount = BMV7.preyCount - preyCount;
+        int newPredatorCount = BMV7.predatorCount - predatorCount;
+        if (newPreyCount >= 0 && newPredatorCount >= 0)
+        {
+            BMV7.Reset(newPreyCount,newPredatorCount);
+        }
     }
 }
