@@ -3688,7 +3688,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 240
+  orthographic size: 669
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3712,8 +3712,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7063135, y: -0.10718929, z: 0.109248064, w: 0.691156}
-  m_LocalPosition: {x: 111.004456, y: 417.7722, z: -96.19565}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -640, y: 737, z: 188}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14414,7 +14414,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2112452411}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e1693cfb1261e047a2ee5bd67ab5eee, type: 3}
   m_Name: 
@@ -14478,7 +14478,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2112452411}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0f024d388eaf1242b7badfe1d544fb7, type: 3}
   m_Name: 
@@ -14491,7 +14491,7 @@ MonoBehaviour:
     cohesionWeight: 1
     seperationWeight: 2
     alignmentWeight: 1.5
-    avoidPredatorWeight: 15
+    avoidPredatorWeight: 41.2
     chaseWeight: 0
     seperationRadius: 10.16
     isSoloBoid: 0
@@ -14502,7 +14502,7 @@ MonoBehaviour:
     cohesionWeight: 0.5
     seperationWeight: 3
     alignmentWeight: 0.8
-    avoidPredatorWeight: 10
+    avoidPredatorWeight: 22.2
     chaseWeight: 4
     seperationRadius: 12.1
     isSoloBoid: 0
@@ -14515,7 +14515,7 @@ MonoBehaviour:
     alignmentWeight: 0.5
     avoidPredatorWeight: 0
     chaseWeight: 5
-    seperationRadius: 12
+    seperationRadius: 15.2
     isSoloBoid: 1
   polygonPoints:
   - {x: -233.9885, y: 0, z: 0.8495803}
@@ -14559,7 +14559,7 @@ MonoBehaviour:
   boidMesh: {fileID: -462981019419857548, guid: 70f163eacbe73264c87a600a2a4cbe10, type: 3}
   preyMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
   predatorMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
-  boundaryTurnForce: 36.2
+  boundaryTurnForce: 85.8
   totalCount: 0
   lengthArray: 
 --- !u!1 &2145221246
