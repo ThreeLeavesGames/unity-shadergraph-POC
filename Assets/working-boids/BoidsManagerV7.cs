@@ -4,6 +4,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using Random = UnityEngine.Random;
 
 // Add this new struct to store polygon points
 // public struct Polygon
@@ -76,10 +77,54 @@ public class BoidsManagerV7 : MonoBehaviour
     public NativeArray<float3> newPredatorPositions;  // Next frame predator positions
     public NativeArray<float3> newPredatorVelocities; // Next frame predator velocities
     private JobHandle predatorHandle;
+    
+    private MaterialPropertyBlock preyPropertyBlock;
+    private ComputeBuffer preyPropertyBuffer;
+    private MaterialPropertyBlock predatorPropertyBlock;
+    private ComputeBuffer predatorPropertyBuffer;
+    
+    [Header("Mouse Following")]
+    public bool isMouseInBoundary = false;
+    public float mouseAttractionWeight = 2f;
+    private Vector3 mouseWorldPosition;
+    
+    private struct InstanceData
+    {
+        public Vector4 color;
+        public float fps;
+    }
+    
     void Start()
     {
 
         startScript();
+        
+        preyPropertyBlock = new MaterialPropertyBlock();
+        preyPropertyBuffer = new ComputeBuffer(preyCount, 5 * sizeof(float));
+        
+        predatorPropertyBlock = new MaterialPropertyBlock();
+        predatorPropertyBuffer = new ComputeBuffer(predatorCount, 5 * sizeof(float));
+        
+        var preyInstanceData = new InstanceData[preyCount];
+        var predatorInstanceData = new InstanceData[predatorCount];
+        
+        for (int i = 0; i < preyCount; i++)
+        {
+            float t = i / (float)preyCount;
+            preyInstanceData[i].color = Random.ColorHSV();
+            preyInstanceData[i].fps = Random.Range(3, 6);
+        }
+        for (int i = 0; i < predatorCount; i++)
+        {
+            float t = i / (float)predatorCount;
+            predatorInstanceData[i].color = Random.ColorHSV();
+            predatorInstanceData[i].fps = Random.Range(3, 6);
+        }
+        preyPropertyBuffer.SetData(preyInstanceData);
+        preyPropertyBlock.SetBuffer("_InstanceData", preyPropertyBuffer);
+        
+        predatorPropertyBuffer.SetData(predatorInstanceData);
+        predatorPropertyBlock.SetBuffer("_InstanceData", predatorPropertyBuffer);
 
     }
     
@@ -248,6 +293,33 @@ public class BoidsManagerV7 : MonoBehaviour
         newPreyVelocities = new NativeArray<float3>(preyCount, Allocator.Persistent);
         newPredatorPositions = new NativeArray<float3>(predatorCount, Allocator.Persistent);
         newPredatorVelocities = new NativeArray<float3>(predatorCount, Allocator.Persistent);
+        
+        preyPropertyBlock = new MaterialPropertyBlock();
+        preyPropertyBuffer = new ComputeBuffer(preyCount, 5 * sizeof(float));
+        
+        predatorPropertyBlock = new MaterialPropertyBlock();
+        predatorPropertyBuffer = new ComputeBuffer(predatorCount, 5 * sizeof(float));
+        
+        var preyInstanceData = new InstanceData[preyCount];
+        var predatorInstanceData = new InstanceData[predatorCount];
+        
+        for (int i = 0; i < preyCount; i++)
+        {
+            float t = i / (float)preyCount;
+            preyInstanceData[i].color = Random.ColorHSV();
+            preyInstanceData[i].fps = Random.Range(3, 6);
+        }
+        for (int i = 0; i < predatorCount; i++)
+        {
+            float t = i / (float)predatorCount;
+            predatorInstanceData[i].color = Random.ColorHSV();
+            predatorInstanceData[i].fps = Random.Range(3, 6);
+        }
+        preyPropertyBuffer.SetData(preyInstanceData);
+        preyPropertyBlock.SetBuffer("_InstanceData", preyPropertyBuffer);
+        
+        predatorPropertyBuffer.SetData(predatorInstanceData);
+        predatorPropertyBlock.SetBuffer("_InstanceData", predatorPropertyBuffer);
 
     }
 
@@ -314,6 +386,23 @@ public class BoidsManagerV7 : MonoBehaviour
     /// </summary>
     void Update()
     {
+        // Get mouse position in screen space
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Plane plane = new Plane(Vector3.up, 0);
+        
+        if (plane.Raycast(ray, out float distance))
+        {
+           Vector3 tempMouseWorldPosition = ray.GetPoint(distance);
+            
+            // Check if mouse is inside polygon
+            float2 mousePos2D = new float2(tempMouseWorldPosition.x, tempMouseWorldPosition.z);
+            isMouseInBoundary = PolygonUtility.IsPointInPolygon(mousePos2D, polygonPoints) &&
+                                !PolygonUtility.IsPointInPolygon(mousePos2D, antiPolygonPoints);
+            
+            // Update mouse position array
+            mouseWorldPosition = isMouseInBoundary ? tempMouseWorldPosition : float3.zero;
+        }
+        
         UpdateBoidsPositions();
         UpdateTransforms();
     }
@@ -343,6 +432,9 @@ public class BoidsManagerV7 : MonoBehaviour
             antiBoundaryPoints = antiBoundaryPoints,
             antiBoundaryForce = antiBoundaryForce,
             nativePreyMatrices = nativePreyMatrices,
+            mouseWorldPosition= new float3(mouseWorldPosition.x, mouseWorldPosition.y, mouseWorldPosition.z),
+            isMouseActive = isMouseInBoundary,
+            mouseAttractionWeight = mouseAttractionWeight,
         };
 
         // Create predator update job
@@ -404,8 +496,8 @@ public class BoidsManagerV7 : MonoBehaviour
         {
             predatorMatrices[i] = nativePredatorMatrices[i];
         }
-        Graphics.DrawMeshInstanced(boidMesh, 0, preyMaterial, preyMatrices);
-        Graphics.DrawMeshInstanced(boidMesh, 0, predatorMaterial, predatorMatrices);
+        Graphics.DrawMeshInstanced(boidMesh, 0, preyMaterial, preyMatrices,preyMatrices.Length,preyPropertyBlock);
+        Graphics.DrawMeshInstanced(boidMesh, 0, predatorMaterial, predatorMatrices,predatorMatrices.Length,predatorPropertyBlock);
 
     }
 
@@ -433,6 +525,16 @@ public class BoidsManagerV7 : MonoBehaviour
         if (antiBoundaryPoints.IsCreated) antiBoundaryPoints.Dispose();
         if (nativePredatorMatrices.IsCreated) nativePredatorMatrices.Dispose();
         if (nativePreyMatrices.IsCreated) nativePreyMatrices.Dispose();
+        if (preyPropertyBuffer != null)
+        {
+            preyPropertyBuffer.Release();
+            preyPropertyBuffer = null;
+        }
+        if (predatorPropertyBuffer != null)
+        {
+            predatorPropertyBuffer.Release();
+            predatorPropertyBuffer = null;
+        }
     }
 }
 [BurstCompile]
@@ -461,7 +563,9 @@ public struct PreyUpdateJobV7 : IJobParallelFor
     public float separationWeight;   // Strength of collision avoidance
     public float alignmentWeight;    // Strength of velocity matching
     public float avoidPredatorWeight;// Strength of predator avoidance
-
+    public float3 mouseWorldPosition;
+    public bool isMouseActive;
+    public float mouseAttractionWeight;
    
 public void Execute(int index)
 {
@@ -475,6 +579,7 @@ public void Execute(int index)
     float3 alignment = float3.zero;    
     float3 avoidPredator = float3.zero;
     float3 avoidBoundary = float3.zero;
+    float3 mouseAttraction = float3.zero;
     int neighborCount = 0;             
 
     // Calculate flocking behaviors (same as before)
@@ -573,9 +678,20 @@ public void Execute(int index)
         }
     }
     
+    if (isMouseActive)
+    {
+        float3 toMouse = mouseWorldPosition - position;
+        float distToMouse = math.length(toMouse);
+            
+        if (distToMouse > 0.1f) // Prevent division by zero
+        {
+            mouseAttraction = math.normalize(toMouse) * mouseAttractionWeight;
+        }
+    }
 
     // Combine all forces
-    velocity += cohesion + separation + alignment + (avoidPredator * 4) + avoidBoundary  + antiBoundaryForce;
+    velocity += cohesion + separation + alignment + (avoidPredator * 4) + avoidBoundary + antiBoundaryForce +
+                (mouseAttraction * 50);
 
     // Normalize and apply speed
     velocity.y = 0;

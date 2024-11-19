@@ -63,7 +63,7 @@ public class BoidsWorldManagerV1 : MonoBehaviour
         BoidsManagerV7 BMV7 = BoidObject.boidGameObject.GetComponent<BoidsManagerV7>();
         int newPreyCount = BMV7.preyCount - preyCount;
         int newPredatorCount = BMV7.predatorCount - predatorCount;
-        if (newPreyCount >= 0 && newPredatorCount >= 0)
+        if (newPreyCount > 0 && newPredatorCount > 0)
         {
             BMV7.Reset(newPreyCount,newPredatorCount);
         }

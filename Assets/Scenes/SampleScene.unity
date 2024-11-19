@@ -2099,6 +2099,8 @@ MonoBehaviour:
   boundarySize: 20
   softBoundaryOffset: 1
   boundaryTurnForce: 16.31
+  isMouseInBoundary: 0
+  mouseAttractionWeight: 2
 --- !u!1 &214094950
 GameObject:
   m_ObjectHideFlags: 0
@@ -2924,6 +2926,8 @@ MonoBehaviour:
   boundarySize: 20
   softBoundaryOffset: 1
   boundaryTurnForce: 16.31
+  isMouseInBoundary: 0
+  mouseAttractionWeight: 2
 --- !u!114 &321405133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3684,7 +3688,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 1132
+  orthographic size: 240
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3708,8 +3712,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -309, y: 877, z: -370}
+  m_LocalRotation: {x: 0.7063135, y: -0.10718929, z: 0.109248064, w: 0.691156}
+  m_LocalPosition: {x: 111.004456, y: 417.7722, z: -96.19565}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4597,6 +4601,8 @@ MonoBehaviour:
   boundarySize: 20
   softBoundaryOffset: 1
   boundaryTurnForce: 16.31
+  isMouseInBoundary: 0
+  mouseAttractionWeight: 2
 --- !u!114 &517955711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14392,6 +14398,8 @@ GameObject:
   - component: {fileID: 2112452413}
   - component: {fileID: 2112452412}
   - component: {fileID: 2112452414}
+  - component: {fileID: 2112452415}
+  - component: {fileID: 2112452416}
   m_Layer: 0
   m_Name: BoidsWorldManager
   m_TagString: Untagged
@@ -14406,7 +14414,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2112452411}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e1693cfb1261e047a2ee5bd67ab5eee, type: 3}
   m_Name: 
@@ -14440,11 +14448,120 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2112452411}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 206a9316482f12b43abd20b0c8308c92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2112452415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112452411}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0e516f755688864c88569baeea20125, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boidCount: 202
+  boundaryRadius: 59.4
+  predatorForce: 4.12
+  preyAvoidanceForce: 1.94
+  cohesionForce: 1.52
+  alignmentForce: 1.89
+--- !u!114 &2112452416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112452411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0f024d388eaf1242b7badfe1d544fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boids:
+  - hierarchy: 0
+    count: 247
+    speed: 7
+    perceptionRadius: 15
+    cohesionWeight: 1
+    seperationWeight: 2
+    alignmentWeight: 1.5
+    avoidPredatorWeight: 15
+    chaseWeight: 0
+    seperationRadius: 10.16
+    isSoloBoid: 0
+  - hierarchy: 1
+    count: 20
+    speed: 6
+    perceptionRadius: 20
+    cohesionWeight: 0.5
+    seperationWeight: 3
+    alignmentWeight: 0.8
+    avoidPredatorWeight: 10
+    chaseWeight: 4
+    seperationRadius: 12.1
+    isSoloBoid: 0
+  - hierarchy: 2
+    count: 8
+    speed: 5
+    perceptionRadius: 25
+    cohesionWeight: 0.3
+    seperationWeight: 4
+    alignmentWeight: 0.5
+    avoidPredatorWeight: 0
+    chaseWeight: 5
+    seperationRadius: 12
+    isSoloBoid: 1
+  polygonPoints:
+  - {x: -233.9885, y: 0, z: 0.8495803}
+  - {x: -172.39946, y: 0, z: 38.815422}
+  - {x: -101.529884, y: 0, z: 46.408592}
+  - {x: -18.848717, y: 0, z: 54.001762}
+  - {x: 71.42564, y: 0, z: 45.564907}
+  - {x: 127.95255, y: 0, z: 15.192234}
+  - {x: 197.97845, y: 0, z: -8.43096}
+  - {x: 231.72586, y: 0, z: 30.37857}
+  - {x: 253.66168, y: 0, z: 92.811295}
+  - {x: 309.3449, y: 0, z: 125.71502}
+  - {x: 400.46292, y: 0, z: 126.55871}
+  - {x: 466.27042, y: 0, z: 98.717094}
+  - {x: 485.6752, y: 0, z: 34.597}
+  - {x: 467.11398, y: 0, z: -23.61729}
+  - {x: 428.30453, y: 0, z: -52.3026}
+  - {x: 365.87183, y: 0, z: -82.67528}
+  - {x: 300.90808, y: 0, z: -119.79745}
+  - {x: 245.22482, y: 0, z: -200.79124}
+  - {x: 198.82211, y: 0, z: -276.72293}
+  - {x: 136.3894, y: 0, z: -336.62457}
+  - {x: 63.83245, y: 0, z: -367.84094}
+  - {x: -19.692398, y: 0, z: -381.3399}
+  - {x: -101.529884, y: 0, z: -366.15356}
+  - {x: -186.74213, y: 0, z: -344.21777}
+  - {x: -235.67587, y: 0, z: -263.22397}
+  - {x: -261.8301, y: 0, z: -166.20013}
+  - {x: -252.54959, y: 0, z: -87.7374}
+  - {x: -233.9885, y: 0, z: 0.8495803}
+  antiPolygonPoints:
+  - {x: -51.75244, y: 0, z: -64.957886}
+  - {x: 14.055016, y: 0, z: -64.957886}
+  - {x: 45.271385, y: 0, z: -118.11007}
+  - {x: 55.39559, y: 0, z: -186.44858}
+  - {x: 8.992912, y: 0, z: -210.07176}
+  - {x: -58.501926, y: 0, z: -203.3223}
+  - {x: -108.27937, y: 0, z: -176.32436}
+  - {x: -104.904625, y: 0, z: -109.67321}
+  - {x: -51.75244, y: 0, z: -64.957886}
+  boidMesh: {fileID: -462981019419857548, guid: 70f163eacbe73264c87a600a2a4cbe10, type: 3}
+  preyMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  predatorMaterial: {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  boundaryTurnForce: 36.2
+  totalCount: 0
+  lengthArray: 
 --- !u!1 &2145221246
 GameObject:
   m_ObjectHideFlags: 0
