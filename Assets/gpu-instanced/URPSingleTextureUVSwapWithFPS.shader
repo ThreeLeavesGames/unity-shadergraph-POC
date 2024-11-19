@@ -65,7 +65,7 @@ Shader "Custom/URPSingleTextureUVSwapWithFPS"
             {
                 float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
+                 uint instanceID : SV_InstanceID;
             };
 
             struct Varyings
@@ -73,9 +73,16 @@ Shader "Custom/URPSingleTextureUVSwapWithFPS"
                 float2 uv : TEXCOORD0;
                 float4 positionCS : SV_POSITION;
                 float fogCoord : TEXCOORD1;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
+                uint instanceID : SV_InstanceID;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
+            struct InstanceData
+            {
+                float4 color;
+                float fps;
+            };
+
+            StructuredBuffer<InstanceData> _InstanceData;
 
             // Constants matching the original code
             static const float TEXTURE_WIDTH = 256.0;
@@ -96,7 +103,7 @@ Shader "Custom/URPSingleTextureUVSwapWithFPS"
              }
 
             // Function to get UV offset based on direction, part type, and animation frame
-            float2 GetUVOffset(float time)
+            float2 GetUVOffset(float time,float fps)
             {
                 float2 offset = float2(0, 0);
                 
@@ -112,7 +119,7 @@ Shader "Custom/URPSingleTextureUVSwapWithFPS"
                 {
                     // float fps = UNITY_ACCESS_INSTANCED_PROP(Props, _FPS);
                     // Calculate frame duration
-                    float frameDuration = 1.0 / _FPS;
+                    float frameDuration = 1.0 / fps;
                     // Calculate current frame
                     int currentFrame = (int)(time / frameDuration) % FRAME_COUNT;
                     // Add frame offset
@@ -129,6 +136,8 @@ Shader "Custom/URPSingleTextureUVSwapWithFPS"
                 Varyings output = (Varyings)0;
                 
                 UNITY_SETUP_INSTANCE_ID(input);
+                InstanceData data = _InstanceData[input.instanceID];
+                float fps = data.fps;
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
@@ -136,7 +145,7 @@ Shader "Custom/URPSingleTextureUVSwapWithFPS"
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 
                 // Get the base UV offset for current direction and part
-                float2 uvOffset = GetUVOffset(_Time.y);
+                float2 uvOffset = GetUVOffset(_Time.y,fps);
                 
                 // Convert original UV (0-1) to pixel space relative to sprite section
                 float2 pixelCoord = input.uv * PART_HEIGHT;
