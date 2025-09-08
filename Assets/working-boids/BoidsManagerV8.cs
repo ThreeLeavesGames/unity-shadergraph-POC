@@ -1,3 +1,16 @@
+/*
+ * WARNING: THIS VERSION (V8) DOES NOT WORK PROPERLY
+ * 
+ * Known Issues:
+ * - May cause Unity to freeze on play
+ * - Contains bugs in memory management
+ * - Infinite loops possible in spawn logic
+ * 
+ * USE BoidsManagerV7 INSTEAD - IT'S STABLE AND WORKING
+ * 
+ * This file is kept for reference only.
+ */
+
 using System;
 using UnityEngine;
 using Unity.Jobs;

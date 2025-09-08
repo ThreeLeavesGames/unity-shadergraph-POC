@@ -1,3 +1,17 @@
+/*
+ * WARNING: THIS VERSION (V9) DOES NOT WORK PROPERLY
+ * 
+ * Known Issues:
+ * - Causes Unity to freeze immediately on play
+ * - Contains infinite loop in getRandomPosition() method
+ * - Bugs in memory disposal logic
+ * - Problems with multi-polygon boundary system
+ * 
+ * USE BoidsManagerV7 INSTEAD - IT'S STABLE AND WORKING
+ * 
+ * This file is kept for reference only.
+ */
+
 using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
@@ -314,7 +328,7 @@ public class BoidsManagerV9 : SerializedMonoBehaviour
         // Dispose all NativeArrays if they exist
         if (positions.IsCreated) positions.Dispose();
         if (velocities.IsCreated) velocities.Dispose();
-        if (newPositions.IsCreated) newVelocities.Dispose();
+        if (newPositions.IsCreated) newPositions.Dispose();
         if (nativeMatrices.IsCreated) nativeMatrices.Dispose();
         if (hierarchyArray.IsCreated) hierarchyArray.Dispose();
         if (boundaryPoints.IsCreated) boundaryPoints.Dispose();

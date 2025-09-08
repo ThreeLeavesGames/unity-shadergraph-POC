@@ -21,4 +21,100 @@ public class BoidsWorldManagerEditor : UnityEditor.Editor
         }
     }
 }
+
+[UnityEditor.CustomEditor(typeof(BoidsWorldManagerV2))]
+public class BoidsWorldManagerV2Editor : UnityEditor.Editor
+{
+    private int selectedPondIndex = 0;
+    private int selectedRankIndex = 0;
+    private int boidCountToModify = 10;
+    
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        BoidsWorldManagerV2 script = (BoidsWorldManagerV2)target;
+        
+        UnityEditor.EditorGUILayout.Space();
+        UnityEditor.EditorGUILayout.LabelField("Rank-Based Boid Controls", UnityEditor.EditorStyles.boldLabel);
+        
+        // Pond selection
+        selectedPondIndex = UnityEditor.EditorGUILayout.IntField("Pond Index", selectedPondIndex);
+        selectedPondIndex = Mathf.Max(0, selectedPondIndex);
+        
+        // Rank selection
+        selectedRankIndex = UnityEditor.EditorGUILayout.IntField("Rank Index", selectedRankIndex);
+        selectedRankIndex = Mathf.Max(0, selectedRankIndex);
+        
+        // Count to modify
+        boidCountToModify = UnityEditor.EditorGUILayout.IntField("Count to Modify", boidCountToModify);
+        boidCountToModify = Mathf.Max(1, boidCountToModify);
+        
+        UnityEditor.EditorGUILayout.Space();
+        
+        // Display current counts if available
+        if (Application.isPlaying && script.boidsMs.Count > selectedPondIndex)
+        {
+            int[] currentCounts = script.GetRankCounts(selectedPondIndex);
+            if (currentCounts.Length > 0)
+            {
+                UnityEditor.EditorGUILayout.LabelField($"Current Counts: [{string.Join(", ", currentCounts)}]");
+                UnityEditor.EditorGUILayout.LabelField($"Total Boids: {script.GetTotalBoidCount(selectedPondIndex)}");
+                UnityEditor.EditorGUILayout.Space();
+            }
+        }
+        
+        // Rank modification buttons
+        UnityEditor.EditorGUILayout.BeginHorizontal();
+        if(GUILayout.Button($"Increase Rank {selectedRankIndex}"))
+        {
+            if (Application.isPlaying)
+            {
+                script.IncreaseBoidsByRank(selectedPondIndex, selectedRankIndex, boidCountToModify);
+            }
+        }
+        if(GUILayout.Button($"Decrease Rank {selectedRankIndex}"))
+        {
+            if (Application.isPlaying)
+            {
+                script.DecreaseBoidsByRank(selectedPondIndex, selectedRankIndex, boidCountToModify);
+            }
+        }
+        UnityEditor.EditorGUILayout.EndHorizontal();
+        
+        UnityEditor.EditorGUILayout.Space();
+        
+        // Quick preset buttons
+        UnityEditor.EditorGUILayout.LabelField("Quick Presets", UnityEditor.EditorStyles.boldLabel);
+        UnityEditor.EditorGUILayout.BeginHorizontal();
+        if(GUILayout.Button("Balanced\n[80, 15, 5]"))
+        {
+            if (Application.isPlaying)
+            {
+                script.SetRankCounts(selectedPondIndex, new int[]{80, 15, 5});
+            }
+        }
+        if(GUILayout.Button("Many Low\n[150, 10, 2]"))
+        {
+            if (Application.isPlaying)
+            {
+                script.SetRankCounts(selectedPondIndex, new int[]{150, 10, 2});
+            }
+        }
+        if(GUILayout.Button("Pyramid\n[100, 50, 25]"))
+        {
+            if (Application.isPlaying)
+            {
+                script.SetRankCounts(selectedPondIndex, new int[]{100, 50, 25});
+            }
+        }
+        UnityEditor.EditorGUILayout.EndHorizontal();
+        
+        if (!Application.isPlaying)
+        {
+            UnityEditor.EditorGUILayout.Space();
+            UnityEditor.EditorGUILayout.HelpBox("Rank controls only work in Play Mode", UnityEditor.MessageType.Info);
+        }
+    }
+}
 #endif
