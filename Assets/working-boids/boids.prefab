@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 2851692042219067589}
   - component: {fileID: 6116251002146299781}
   - component: {fileID: 6849579074166837997}
+  - component: {fileID: 3518002071121328489}
+  - component: {fileID: 7737749213234763582}
   m_Layer: 0
   m_Name: boids
   m_TagString: Untagged
@@ -732,14 +734,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3604478100467147455}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31acc22efcf1495ebc12baec19940b6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManagerV11
   polygonPoints: []
   antiPolygonPoints: []
-  antiBoundaryForce: 1.35
+  antiBoundaryForce: 50
   boidMesh: {fileID: -462981019419857548, guid: 70f163eacbe73264c87a600a2a4cbe10, type: 3}
   rankMaterials:
   - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
@@ -747,38 +749,164 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
   boidPrefab: {fileID: 0}
   totalBoidCount: 100
-  rankCounts: 500000000f00000005000000
-  spawnRadius: 43
+  rankCounts: 000000000000000000000000
   rankSettings:
-  - speed: 10.35
-    perceptionRadius: 3.27
-    cohesionWeight: 2.29
-    separationWeight: 1.89
-    alignmentWeight: 1
-    chaseWeight: 0.5
-    fleeWeight: 3
+  - speed: 18
+    perceptionRadius: 5
+    cohesionWeight: 4
+    separationWeight: 6
+    alignmentWeight: 5
+    chaseWeight: 0
+    fleeWeight: 61
     scale: 4
     debugColor: {r: 0, g: 1, b: 0, a: 1}
-  - speed: 6
-    perceptionRadius: 3
-    cohesionWeight: 1.43
-    separationWeight: 1.5
-    alignmentWeight: 1.2
-    chaseWeight: 1.5
-    fleeWeight: 2
+  - speed: 12
+    perceptionRadius: 20
+    cohesionWeight: 4
+    separationWeight: 6
+    alignmentWeight: 3
+    chaseWeight: 10
+    fleeWeight: 10
     scale: 8
     debugColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  - speed: 4.63
-    perceptionRadius: 4
-    cohesionWeight: 0.8
-    separationWeight: 1.2
-    alignmentWeight: 1.5
+  - speed: 7
+    perceptionRadius: 40
+    cohesionWeight: 0
+    separationWeight: 6
+    alignmentWeight: 0
     chaseWeight: 3
-    fleeWeight: 1
+    fleeWeight: 0
     scale: 12
     debugColor: {r: 1, g: 0, b: 0, a: 1}
-  boundarySize: 20
-  softBoundaryOffset: 1
-  boundaryTurnForce: 0.5
+  boundaryTurnForce: 50
+  debugBoundaryForces: 1
+  rotationSmoothness: 8
+  maxVelocityChange: 5
+  currentFrameTime: 0
+  averageFrameTime: 0
+  isMouseInBoundary: 0
+  mouseAttractionWeight: 2
+--- !u!114 &3518002071121328489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3604478100467147455}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7f387df60504272820fd8772d66cb65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidsManagerV12
+  polygonPoints: []
+  boundaryTurnForce: 50
+  debugBoundaryForces: 0
+  antiBoundaryForces:
+  - 50
+  - 50
+  boidMesh: {fileID: -462981019419857548, guid: 70f163eacbe73264c87a600a2a4cbe10, type: 3}
+  rankMaterials:
+  - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  boidPrefab: {fileID: 0}
+  totalBoidCount: 100
+  rankCounts: 000000000000000000000000
+  rankSettings:
+  - speed: 10
+    perceptionRadius: 20
+    cohesionWeight: 4
+    separationWeight: 6
+    alignmentWeight: 5
+    chaseWeight: 0
+    fleeWeight: 61
+    scale: 4
+    debugColor: {r: 0, g: 1, b: 0, a: 1}
+  - speed: 7
+    perceptionRadius: 20
+    cohesionWeight: 4
+    separationWeight: 6
+    alignmentWeight: 3
+    chaseWeight: 10
+    fleeWeight: 10
+    scale: 8
+    debugColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  - speed: 5
+    perceptionRadius: 40
+    cohesionWeight: 0
+    separationWeight: 6
+    alignmentWeight: 0
+    chaseWeight: 3
+    fleeWeight: 0
+    scale: 12
+    debugColor: {r: 1, g: 0, b: 0, a: 1}
+  rotationSmoothness: 8
+  maxVelocityChange: 5
+  currentFrameTime: 0
+  averageFrameTime: 0
+  isMouseInBoundary: 0
+  mouseAttractionWeight: 2
+--- !u!114 &7737749213234763582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3604478100467147455}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e262ef07345c475e99b9795d94d8692c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidsManagerV13
+  polygonPoints: []
+  boundaryTurnForce: 50
+  debugBoundaryForces: 0
+  antiBoundaryForces:
+  - 50
+  - 50
+  boidMesh: {fileID: -462981019419857548, guid: 70f163eacbe73264c87a600a2a4cbe10, type: 3}
+  rankMaterials:
+  - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  - {fileID: 2100000, guid: 8242c127718be644bb84c294288c0282, type: 2}
+  boidPrefab: {fileID: 0}
+  totalBoidCount: 100
+  rankCounts: 000000000000000000000000
+  rankSettings:
+  - speed: 10
+    perceptionRadius: 20
+    cohesionWeight: 4
+    separationWeight: 6
+    alignmentWeight: 5
+    chaseWeight: 0
+    fleeWeight: 61
+    scale: 4
+    debugColor: {r: 0, g: 1, b: 0, a: 1}
+  - speed: 7
+    perceptionRadius: 20
+    cohesionWeight: 4
+    separationWeight: 6
+    alignmentWeight: 3
+    chaseWeight: 10
+    fleeWeight: 10
+    scale: 8
+    debugColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  - speed: 5
+    perceptionRadius: 40
+    cohesionWeight: 0
+    separationWeight: 6
+    alignmentWeight: 0
+    chaseWeight: 3
+    fleeWeight: 0
+    scale: 12
+    debugColor: {r: 1, g: 0, b: 0, a: 1}
+  rotationSmoothness: 15.7
+  maxVelocityChange: 3.2
+  enableEscapeDetection: 1
+  detectionFrequency: 30
+  teleportEscapedBoids: 1
+  logEscapeEvents: 1
+  currentFrameTime: 0
+  averageFrameTime: 0
   isMouseInBoundary: 0
   mouseAttractionWeight: 2

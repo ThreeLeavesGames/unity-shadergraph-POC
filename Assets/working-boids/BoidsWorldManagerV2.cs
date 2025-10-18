@@ -22,11 +22,20 @@ public class BoidsWorldManagerV2 : MonoBehaviour
     {
         foreach (var boundryObject in boundryObjects)
         {
-            OuterPerimeterFinderV3 outerPerimeterFinderV3 = boundryObject.GetComponent<OuterPerimeterFinderV3>();
+            OuterPerimeterFinderV4 outerPerimeterFinderV4 = boundryObject.GetComponent<OuterPerimeterFinderV4>();
             GameObject boid = Instantiate(boidsPrefabs[0], boundryObject.transform);
-            BoidsManagerV11 BM = boid.GetComponent<BoidsManagerV11>();
-            BM.polygonPoints = outerPerimeterFinderV3.loop1.ToArray();
-            BM.antiPolygonPoints = outerPerimeterFinderV3.loop2.ToArray();
+            BoidsManagerV13 BM = boid.GetComponent<BoidsManagerV13>();
+            BM.enabled = true;
+            BM.polygonPoints = outerPerimeterFinderV4.GetOuterBoundaryPoints();
+            
+            // Create separate anti-boundary arrays
+            List<Vector3[]> antiBoundaryArrays = new List<Vector3[]>();
+            if (outerPerimeterFinderV4.GetAntiBoundaryPoints1().Length > 0)
+                antiBoundaryArrays.Add(outerPerimeterFinderV4.GetAntiBoundaryPoints1());
+            if (outerPerimeterFinderV4.GetAntiBoundaryPoints2().Length > 0)
+                antiBoundaryArrays.Add(outerPerimeterFinderV4.GetAntiBoundaryPoints2());
+            
+            BM.antiPolygonPoints = antiBoundaryArrays.ToArray();
             
             BoidObjectV2 boidObject = new BoidObjectV2 { boidGameObject = boid };
             boidsMs.Add(boidObject);
@@ -49,8 +58,18 @@ public class BoidsWorldManagerV2 : MonoBehaviour
             Debug.Log($"Total boids: {GetTotalBoidCount(0)}");
             
             // Set new distribution: 100 rank-0, 20 rank-1, 10 rank-2
-            SetRankCounts(0, new int[]{100, 20, 10});
+            SetRankCounts(0, new int[]{500, 80, 50});
+            SetRankCounts(1, new int[]{500, 80, 50});
+            SetRankCounts(2, new int[]{500, 80, 50});
+            SetRankCounts(3, new int[]{500, 80, 50});
+            SetRankCounts(4, new int[]{500, 80, 50});
+            SetRankCounts(5, new int[]{500, 80, 50});
+            SetRankCounts(6, new int[]{500, 80, 50});
+            SetRankCounts(7, new int[]{500, 80, 50});
             Debug.Log("Set new distribution: [100, 20, 10]");
+            
+            // display total of all ponds
+            
             Debug.Log($"New total boids: {GetTotalBoidCount(0)}");
             
             // Increase rank 2 (highest) boids by 5 in pond 0
@@ -85,7 +104,7 @@ public class BoidsWorldManagerV2 : MonoBehaviour
         if (pondIndex >= 0 && pondIndex < boidsMs.Count)
         {
             BoidObjectV2 BoidObject = boidsMs[pondIndex];
-            BoidsManagerV11 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV11>();
+            BoidsManagerV13 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV13>();
             
             // Create new rank counts array with increased count for specified rank
             int[] newRankCounts = (int[])BM.rankCounts.Clone();
@@ -102,7 +121,7 @@ public class BoidsWorldManagerV2 : MonoBehaviour
         if (pondIndex >= 0 && pondIndex < boidsMs.Count)
         {
             BoidObjectV2 BoidObject = boidsMs[pondIndex];
-            BoidsManagerV11 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV11>();
+            BoidsManagerV13 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV13>();
             
             // Create new rank counts array with decreased count for specified rank
             int[] newRankCounts = (int[])BM.rankCounts.Clone();
@@ -119,7 +138,7 @@ public class BoidsWorldManagerV2 : MonoBehaviour
         if (pondIndex >= 0 && pondIndex < boidsMs.Count)
         {
             BoidObjectV2 BoidObject = boidsMs[pondIndex];
-            BoidsManagerV11 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV11>();
+            BoidsManagerV13 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV13>();
             BM.Reset(newRankCounts);
         }
     }
@@ -129,7 +148,7 @@ public class BoidsWorldManagerV2 : MonoBehaviour
         if (pondIndex >= 0 && pondIndex < boidsMs.Count)
         {
             BoidObjectV2 BoidObject = boidsMs[pondIndex];
-            BoidsManagerV11 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV11>();
+            BoidsManagerV13 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV13>();
             return BM.totalBoidCount;
         }
         return 0;
@@ -140,7 +159,7 @@ public class BoidsWorldManagerV2 : MonoBehaviour
         if (pondIndex >= 0 && pondIndex < boidsMs.Count)
         {
             BoidObjectV2 BoidObject = boidsMs[pondIndex];
-            BoidsManagerV11 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV11>();
+            BoidsManagerV13 BM = BoidObject.boidGameObject.GetComponent<BoidsManagerV13>();
             return BM.rankCounts;
         }
         return new int[0];

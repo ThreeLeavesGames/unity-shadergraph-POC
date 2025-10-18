@@ -110,10 +110,52 @@ public class BoidsWorldManagerV2Editor : UnityEditor.Editor
         }
         UnityEditor.EditorGUILayout.EndHorizontal();
         
+        // Boundary debugging section
+        UnityEditor.EditorGUILayout.Space();
+        UnityEditor.EditorGUILayout.LabelField("Boundary Debug Controls", UnityEditor.EditorStyles.boldLabel);
+        
+        if (Application.isPlaying && script.boidsMs.Count > selectedPondIndex)
+        {
+            var boidObject = script.boidsMs[selectedPondIndex];
+            if (boidObject.boidGameObject != null)
+            {
+                var boidsManager = boidObject.boidGameObject.GetComponent<BoidsManagerV11>();
+                if (boidsManager != null)
+                {
+                    // Boundary force settings
+                    UnityEditor.EditorGUILayout.BeginHorizontal();
+                    boidsManager.boundaryTurnForce = UnityEditor.EditorGUILayout.FloatField("Boundary Turn Force", boidsManager.boundaryTurnForce);
+                    boidsManager.antiBoundaryForce = UnityEditor.EditorGUILayout.FloatField("Anti-Boundary Force", boidsManager.antiBoundaryForce);
+                    UnityEditor.EditorGUILayout.EndHorizontal();
+                    
+                    // Debug toggles
+                    UnityEditor.EditorGUI.BeginChangeCheck();
+                    
+                    boidsManager.debugBoundaryForces = UnityEditor.EditorGUILayout.Toggle("Debug Boundary Forces", boidsManager.debugBoundaryForces);
+                    
+                    // Natural movement controls
+                    UnityEditor.EditorGUILayout.Space();
+                    UnityEditor.EditorGUILayout.LabelField("Natural Movement", UnityEditor.EditorStyles.boldLabel);
+                    boidsManager.rotationSmoothness = UnityEditor.EditorGUILayout.FloatField("Rotation Smoothness", boidsManager.rotationSmoothness);
+                    boidsManager.maxVelocityChange = UnityEditor.EditorGUILayout.FloatField("Max Velocity Change", boidsManager.maxVelocityChange);
+                    
+                    // V7 Boundary system info
+                    UnityEditor.EditorGUILayout.Space();
+                    if (boidsManager.polygonPoints != null)
+                        UnityEditor.EditorGUILayout.LabelField($"🟡 Outer Boundary (AVOID): {boidsManager.polygonPoints.Length}");
+                    if (boidsManager.antiPolygonPoints != null)
+                        UnityEditor.EditorGUILayout.LabelField($"🔴 Inner Obstacles (AVOID): {boidsManager.antiPolygonPoints.Length}");
+                    
+                    UnityEditor.EditorGUILayout.Space();
+                    UnityEditor.EditorGUILayout.HelpBox("✅ V7 Working Boundary System:\n🟡 Yellow = Outer boundary (repel outward)\n🔴 Red = Inner obstacles (repel away)\nBoth use inverse-square force falloff\nBoids stay between outer and inner boundaries", UnityEditor.MessageType.Info);
+                }
+            }
+        }
+        
         if (!Application.isPlaying)
         {
             UnityEditor.EditorGUILayout.Space();
-            UnityEditor.EditorGUILayout.HelpBox("Rank controls only work in Play Mode", UnityEditor.MessageType.Info);
+            UnityEditor.EditorGUILayout.HelpBox("Rank controls and boundary debugging only work in Play Mode", UnityEditor.MessageType.Info);
         }
     }
 }

@@ -43,3 +43,13 @@ adding features to this rank-based
 boids system.
 
 ###########################
+
+I'll start by implementing a spatial
+partitioning system to solve the O(n²)
+neighbor detection problem. This will
+dramatically improve performance with
+large boid counts.
+
+instead of forcing the boid inside     │
+│   the boundry, can we check if the boid  │
+│   is outside outerboundry  and inside innerboundry

@@ -26,6 +26,7 @@ public class BoidsWorldManagerV1 : MonoBehaviour
             OuterPerimeterFinderV3 outerPerimeterFinderV3 = boundryObject.GetComponent<OuterPerimeterFinderV3>();
             GameObject boid = Instantiate(boidsPrefabs[0], boundryObject.transform);
             BoidsManagerV7 BMV7 = boid.GetComponent<BoidsManagerV7>();
+            BMV7.enabled = true;
             BMV7.polygonPoints = outerPerimeterFinderV3.loop1.ToArray();
             BMV7.antiPolygonPoints = outerPerimeterFinderV3.loop2.ToArray();
             

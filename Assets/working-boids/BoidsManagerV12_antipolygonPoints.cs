@@ -7,38 +7,28 @@ using Unity.Mathematics;
 using Unity.Burst;
 using Random = UnityEngine.Random;
 
-[System.Serializable]
-public class RankBoidSettings
-{
-    [Header("Movement")]
-    public float speed = 5f;
-    public float perceptionRadius = 2.5f;
-    
-    [Header("Flocking Behavior")]
-    public float cohesionWeight = 1f;
-    public float separationWeight = 1.5f;
-    public float alignmentWeight = 1f;
-    
-    [Header("Rank Interactions")]
-    public float chaseWeight = 2f;  // How aggressively this rank chases lower ranks
-    public float fleeWeight = 2f;   // How strongly this rank flees from higher ranks
-    
-    [Header("Visual")]
-    public float scale = 6f;        // Base scale for this rank
-    public Color debugColor = Color.white;
-}
 
 
-public class BoidsManagerV11 : MonoBehaviour
+public class BoidsManagerV12 : MonoBehaviour
 {
     [Header("Polygon Boundary")]
     public Vector3[] polygonPoints;   // Set this in inspector or via code
     private NativeArray<float2> boundaryPoints;  // For use in jobs
     
+    [Header("Boundary Settings")]
+    public float boundaryTurnForce = 0.5f;   // Force applied to turn away from boundary (V7 working value)
+    public bool debugBoundaryForces = false; // Show boundary force vectors in scene view
+    
     [Header("Anti-Boundary Points")]
-    public Vector3[] antiPolygonPoints;   // Set this in inspector or via code
-    public NativeArray<float2> antiBoundaryPoints;
-    public float antiBoundaryForce;
+    public Vector3[][] antiPolygonPoints;   // Array of arrays of anti-boundary points
+    public NativeArray<float2>[] antiBoundaryPointsArrays;
+    public float[] antiBoundaryForces;
+    
+    // Flattened arrays for job system
+    private NativeArray<float2> allAntiBoundaryPoints;
+    private NativeArray<int> antiBoundaryStartIndices;
+    private NativeArray<int> antiBoundaryCounts;
+    private NativeArray<float> nativeAntiBoundaryForces;
 
     [Header("Mesh Settings")]
     public Mesh boidMesh;
@@ -70,9 +60,7 @@ public class BoidsManagerV11 : MonoBehaviour
         }
     };
     
-    [Header("Boundary Settings")]
-    public float boundaryTurnForce = 0.5f;   // Force applied to turn away from boundary (V7 working value)
-    public bool debugBoundaryForces = false; // Show boundary force vectors in scene view
+
     
     [Header("Natural Movement")]
     [Range(1f, 20f)] public float rotationSmoothness = 8f;   // How smoothly boids rotate (higher = smoother)
@@ -172,11 +160,68 @@ public class BoidsManagerV11 : MonoBehaviour
             boundaryPoints[i] = new float2(polygonPoints[i].x, polygonPoints[i].z);
         }
         
-        // Convert Vector2 array to NativeArray<float2>
-        antiBoundaryPoints  = new NativeArray<float2>(antiPolygonPoints.Length, Allocator.Persistent);
-        for (int i = 0; i < antiPolygonPoints.Length; i++)
+        // Initialize multiple anti-boundary arrays
+        if (antiPolygonPoints != null && antiPolygonPoints.Length > 0)
         {
-            antiBoundaryPoints[i] = new float2(antiPolygonPoints[i].x, antiPolygonPoints[i].z);
+            antiBoundaryPointsArrays = new NativeArray<float2>[antiPolygonPoints.Length];
+            
+            // Initialize forces array if not set
+            if (antiBoundaryForces == null || antiBoundaryForces.Length != antiPolygonPoints.Length)
+            {
+                antiBoundaryForces = new float[antiPolygonPoints.Length];
+                for (int i = 0; i < antiBoundaryForces.Length; i++)
+                {
+                    antiBoundaryForces[i] = 1.0f; // Default anti-boundary force
+                }
+            }
+            
+            // Calculate total points and create flattened arrays
+            int totalPoints = 0;
+            List<int> startIndices = new List<int>();
+            List<int> counts = new List<int>();
+            
+            for (int arrayIndex = 0; arrayIndex < antiPolygonPoints.Length; arrayIndex++)
+            {
+                if (antiPolygonPoints[arrayIndex] != null && antiPolygonPoints[arrayIndex].Length > 0)
+                {
+                    startIndices.Add(totalPoints);
+                    counts.Add(antiPolygonPoints[arrayIndex].Length);
+                    totalPoints += antiPolygonPoints[arrayIndex].Length;
+                    
+                    antiBoundaryPointsArrays[arrayIndex] = new NativeArray<float2>(antiPolygonPoints[arrayIndex].Length, Allocator.Persistent);
+                    for (int i = 0; i < antiPolygonPoints[arrayIndex].Length; i++)
+                    {
+                        antiBoundaryPointsArrays[arrayIndex][i] = new float2(antiPolygonPoints[arrayIndex][i].x, antiPolygonPoints[arrayIndex][i].z);
+                    }
+                }
+                else
+                {
+                    startIndices.Add(totalPoints);
+                    counts.Add(0);
+                }
+            }
+            
+            // Create flattened arrays for job system
+            allAntiBoundaryPoints = new NativeArray<float2>(totalPoints, Allocator.Persistent);
+            antiBoundaryStartIndices = new NativeArray<int>(startIndices.Count, Allocator.Persistent);
+            antiBoundaryCounts = new NativeArray<int>(counts.Count, Allocator.Persistent);
+            nativeAntiBoundaryForces = new NativeArray<float>(antiBoundaryForces.Length, Allocator.Persistent);
+            
+            int flatIndex = 0;
+            for (int arrayIndex = 0; arrayIndex < antiPolygonPoints.Length; arrayIndex++)
+            {
+                antiBoundaryStartIndices[arrayIndex] = startIndices[arrayIndex];
+                antiBoundaryCounts[arrayIndex] = counts[arrayIndex];
+                nativeAntiBoundaryForces[arrayIndex] = antiBoundaryForces[arrayIndex];
+                
+                if (antiPolygonPoints[arrayIndex] != null && antiPolygonPoints[arrayIndex].Length > 0)
+                {
+                    for (int i = 0; i < antiPolygonPoints[arrayIndex].Length; i++)
+                    {
+                        allAntiBoundaryPoints[flatIndex++] = new float2(antiPolygonPoints[arrayIndex][i].x, antiPolygonPoints[arrayIndex][i].z);
+                    }
+                }
+            }
         }
         
         // Initialize persistent rank settings
@@ -217,23 +262,33 @@ public class BoidsManagerV11 : MonoBehaviour
             }
         }
         
-        // Draw inner boundaries (obstacles)  
-        if (antiPolygonPoints != null && antiPolygonPoints.Length > 2)
+        // Draw multiple inner boundaries (obstacles)
+        if (antiPolygonPoints != null)
         {
-            Gizmos.color = Color.red; // Red = inner obstacles
-            for (int i = 0; i < antiPolygonPoints.Length; i++)
+            Color[] colors = { Color.red, Color.magenta, Color.cyan, Color.yellow };
+            
+            for (int arrayIndex = 0; arrayIndex < antiPolygonPoints.Length; arrayIndex++)
             {
-                Vector3 current = antiPolygonPoints[i];
-                Vector3 next = antiPolygonPoints[(i + 1) % antiPolygonPoints.Length];
-                Gizmos.DrawLine(current, next);
-                
-                // Draw anti-boundary influence radius if debugging
-                if (debugBoundaryForces && Application.isPlaying)
+                Vector3[] points = antiPolygonPoints[arrayIndex];
+                if (points != null && points.Length > 2)
                 {
-                    Gizmos.color = Color.red * 0.3f;
-                    Vector3 lineCenter = (current + next) * 0.5f;
-                    float maxRadius = rankSettings.Length > 0 ? rankSettings[0].perceptionRadius : 2.5f;
-                    Gizmos.DrawWireSphere(lineCenter, maxRadius);
+                    Gizmos.color = colors[arrayIndex % colors.Length];
+                    
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        Vector3 current = points[i];
+                        Vector3 next = points[(i + 1) % points.Length];
+                        Gizmos.DrawLine(current, next);
+                        
+                        // Draw anti-boundary influence radius if debugging
+                        if (debugBoundaryForces && Application.isPlaying)
+                        {
+                            Gizmos.color = colors[arrayIndex % colors.Length] * 0.3f;
+                            Vector3 lineCenter = (current + next) * 0.5f;
+                            float maxRadius = rankSettings.Length > 0 ? rankSettings[0].perceptionRadius : 2.5f;
+                            Gizmos.DrawWireSphere(lineCenter, maxRadius);
+                        }
+                    }
                 }
             }
         }
@@ -398,29 +453,46 @@ public class BoidsManagerV11 : MonoBehaviour
         }
     }
 
-    private Vector3 getRandomPosition(Vector3[] points1,Vector3[] points2)
+    private Vector3 getRandomPosition(Vector3[] outerBoundary, Vector3[][] innerBoundaries)
     {
         float minX = float.MaxValue, minZ = float.MaxValue;
         float maxX = float.MinValue, maxZ = float.MinValue;
     
-        for (int j = 0; j < points1.Length; j++)
+        for (int j = 0; j < outerBoundary.Length; j++)
         {
-            minX = math.min(minX, points1[j].x);
-            maxX = math.max(maxX, points1[j].x);
-            minZ = math.min(minZ, points1[j].z);
-            maxZ = math.max(maxZ, points1[j].z);
+            minX = math.min(minX, outerBoundary[j].x);
+            maxX = math.max(maxX, outerBoundary[j].x);
+            minZ = math.min(minZ, outerBoundary[j].z);
+            maxZ = math.max(maxZ, outerBoundary[j].z);
         }
+        
         float2 testPoint;
         do
         {
+            bool insideAnyInnerBoundary;
             do
             {
                 float randX = UnityEngine.Random.Range(minX, maxX);
                 float randZ = UnityEngine.Random.Range(minZ, maxZ);
-                testPoint = new float2(randX,randZ);
-            } while (PolygonUtility.IsPointInPolygon(testPoint,points2) );
+                testPoint = new float2(randX, randZ);
+                
+                // Check if point is inside any inner boundary (obstacle)
+                insideAnyInnerBoundary = false;
+                if (innerBoundaries != null)
+                {
+                    foreach (Vector3[] innerBoundary in innerBoundaries)
+                    {
+                        if (innerBoundary != null && innerBoundary.Length > 2 &&
+                            PolygonUtility.IsPointInPolygon(testPoint, innerBoundary))
+                        {
+                            insideAnyInnerBoundary = true;
+                            break;
+                        }
+                    }
+                }
+            } while (insideAnyInnerBoundary);
               
-        } while (!PolygonUtility.IsPointInPolygon(testPoint,points1) );
+        } while (!PolygonUtility.IsPointInPolygon(testPoint, outerBoundary));
 
         return new Vector3(testPoint.x, 0, testPoint.y);
     }
@@ -511,8 +583,26 @@ public class BoidsManagerV11 : MonoBehaviour
             
             // Check if mouse is inside polygon
             float2 mousePos2D = new float2(tempMouseWorldPosition.x, tempMouseWorldPosition.z);
-            isMouseInBoundary = PolygonUtility.IsPointInPolygon(mousePos2D, polygonPoints) &&
-                                !PolygonUtility.IsPointInPolygon(mousePos2D, antiPolygonPoints);
+            
+            // Check if mouse is inside outer boundary
+            bool insideOuterBoundary = PolygonUtility.IsPointInPolygon(mousePos2D, polygonPoints);
+            
+            // Check if mouse is inside any inner boundary (obstacle)
+            bool insideAnyInnerBoundary = false;
+            if (antiPolygonPoints != null)
+            {
+                foreach (Vector3[] innerBoundary in antiPolygonPoints)
+                {
+                    if (innerBoundary != null && innerBoundary.Length > 2 &&
+                        PolygonUtility.IsPointInPolygon(mousePos2D, innerBoundary))
+                    {
+                        insideAnyInnerBoundary = true;
+                        break;
+                    }
+                }
+            }
+            
+            isMouseInBoundary = insideOuterBoundary && !insideAnyInnerBoundary;
             
             // Update mouse position array
             mouseWorldPosition = isMouseInBoundary ? tempMouseWorldPosition : float3.zero;
@@ -576,7 +666,7 @@ public class BoidsManagerV11 : MonoBehaviour
         UpdatePersistentRankSettings();
         
         // Create rank-based boid update job
-        RankBoidUpdateJobV11 boidJob = new RankBoidUpdateJobV11
+        RankBoidUpdateJobV12 boidJob = new RankBoidUpdateJobV12
         {
             deltaTime = Time.deltaTime,
             currentPositions = boidPositions,
@@ -589,8 +679,10 @@ public class BoidsManagerV11 : MonoBehaviour
             rankSettingsData = persistentRankSettings,
             boundaryPoints = boundaryPoints,
             boundaryTurnForce = boundaryTurnForce,
-            antiBoundaryPoints = antiBoundaryPoints,
-            antiBoundaryForce = antiBoundaryForce,
+            allAntiBoundaryPoints = allAntiBoundaryPoints,
+            antiBoundaryStartIndices = antiBoundaryStartIndices,
+            antiBoundaryCounts = antiBoundaryCounts,
+            antiBoundaryForces = nativeAntiBoundaryForces,
             nativeBoidMatrices = nativeBoidMatrices,
             mouseWorldPosition = new float3(mouseWorldPosition.x, mouseWorldPosition.y, mouseWorldPosition.z),
             isMouseActive = isMouseInBoundary,
@@ -697,7 +789,21 @@ public class BoidsManagerV11 : MonoBehaviour
         if (newBoidVelocities.IsCreated) newBoidVelocities.Dispose();
         if (newBoidRotations.IsCreated) newBoidRotations.Dispose();
         if (boundaryPoints.IsCreated) boundaryPoints.Dispose();
-        if (antiBoundaryPoints.IsCreated) antiBoundaryPoints.Dispose();
+        // Dispose multiple anti-boundary arrays
+        if (antiBoundaryPointsArrays != null)
+        {
+            for (int i = 0; i < antiBoundaryPointsArrays.Length; i++)
+            {
+                if (antiBoundaryPointsArrays[i].IsCreated)
+                    antiBoundaryPointsArrays[i].Dispose();
+            }
+        }
+        
+        // Dispose flattened arrays
+        if (allAntiBoundaryPoints.IsCreated) allAntiBoundaryPoints.Dispose();
+        if (antiBoundaryStartIndices.IsCreated) antiBoundaryStartIndices.Dispose();
+        if (antiBoundaryCounts.IsCreated) antiBoundaryCounts.Dispose();
+        if (nativeAntiBoundaryForces.IsCreated) nativeAntiBoundaryForces.Dispose();
         if (nativeBoidMatrices.IsCreated) nativeBoidMatrices.Dispose();
         
         // Dispose rank-based buffers
@@ -719,26 +825,16 @@ public class BoidsManagerV11 : MonoBehaviour
     }
 }
 
-[System.Serializable]
-public struct RankSettingsData
-{
-    public float speed;
-    public float perceptionRadius;
-    public float cohesionWeight;
-    public float separationWeight;
-    public float alignmentWeight;
-    public float chaseWeight;
-    public float fleeWeight;
-    public float scale;
-}
 
 [BurstCompile]
-public struct RankBoidUpdateJobV11 : IJobParallelFor
+public struct RankBoidUpdateJobV12 : IJobParallelFor
 {
     [ReadOnly] public NativeArray<float2> boundaryPoints;
-    [ReadOnly] public NativeArray<float2> antiBoundaryPoints;
+    [ReadOnly] public NativeArray<float2> allAntiBoundaryPoints; // Flattened array
+    [ReadOnly] public NativeArray<int> antiBoundaryStartIndices;  // Start index of each array
+    [ReadOnly] public NativeArray<int> antiBoundaryCounts;       // Count of points in each array
+    [ReadOnly] public NativeArray<float> antiBoundaryForces;
     [WriteOnly] public NativeArray<Matrix4x4> nativeBoidMatrices;
-    public float antiBoundaryForce;
     
     // Time and position/velocity data
     public float deltaTime;
@@ -888,34 +984,49 @@ public struct RankBoidUpdateJobV11 : IJobParallelFor
             }
         }
         
-        // Calculate anti-boundary line avoidance (inner obstacles)
+        // Calculate anti-boundary line avoidance (inner obstacles) - multiple arrays
         float2 pos2DAnti = new float2(position.x, position.z);
         float avoidanceRadiusAnti = mySettings.perceptionRadius; // Radius for anti-boundary
         float3 antiBoundaryForceLocal = float3.zero;
 
-        for (int i = 0; i < antiBoundaryPoints.Length; i++)
+        // Process each anti-boundary array separately
+        for (int arrayIndex = 0; arrayIndex < antiBoundaryStartIndices.Length; arrayIndex++)
         {
-            float2 lineStart = antiBoundaryPoints[i];
-            float2 lineEnd = antiBoundaryPoints[(i + 1) % antiBoundaryPoints.Length];
-        
-            // Find closest point on line segment
-            float2 line = lineEnd - lineStart;
-            float len = math.length(line);
-            float2 lineDir = line / len;
-        
-            float t = math.dot(pos2DAnti - lineStart, lineDir);
-            t = math.clamp(t, 0, len);
-        
-            float2 closestPoint = lineStart + lineDir * t;
-            float dist = math.distance(pos2DAnti, closestPoint);
-        
-            // Apply avoidance force if close to line
-            if (dist < avoidanceRadiusAnti)
+            int startIndex = antiBoundaryStartIndices[arrayIndex];
+            int count = antiBoundaryCounts[arrayIndex];
+            float currentForce = antiBoundaryForces[arrayIndex];
+            
+            if (count <= 0) continue;
+            
+            for (int i = 0; i < count; i++)
             {
-                float2 awayDir = math.normalize(pos2DAnti - closestPoint);
-                // Stronger force for anti-boundary
-                float strength = antiBoundaryForce / (dist * dist);
-                antiBoundaryForceLocal += new float3(awayDir.x, 0, awayDir.y) * strength;
+                int currentIdx = startIndex + i;
+                int nextIdx = startIndex + ((i + 1) % count);
+                
+                float2 lineStart = allAntiBoundaryPoints[currentIdx];
+                float2 lineEnd = allAntiBoundaryPoints[nextIdx];
+            
+                // Find closest point on line segment
+                float2 line = lineEnd - lineStart;
+                float len = math.length(line);
+                if (len < 0.001f) continue; // Skip degenerate lines
+                
+                float2 lineDir = line / len;
+            
+                float t = math.dot(pos2DAnti - lineStart, lineDir);
+                t = math.clamp(t, 0, len);
+            
+                float2 closestPoint = lineStart + lineDir * t;
+                float dist = math.distance(pos2DAnti, closestPoint);
+            
+                // Apply avoidance force if close to line
+                if (dist < avoidanceRadiusAnti && dist > 0.001f)
+                {
+                    float2 awayDir = math.normalize(pos2DAnti - closestPoint);
+                    // Use force specific to this anti-boundary array
+                    float strength = currentForce / (dist * dist);
+                    antiBoundaryForceLocal += new float3(awayDir.x, 0, awayDir.y) * strength;
+                }
             }
         }
         
